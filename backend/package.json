@@ -1,0 +1,12 @@
+{
+  "scripts": {
+    "dev": "supabase start"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.116.0",
+    "dotenv": "^17.4.2"
+  },
+  "devDependencies": {
+    "supabase": "^2.117.0"
+  }
+}
