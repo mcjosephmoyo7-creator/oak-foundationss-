@@ -6,6 +6,7 @@ import {
   FormErrors,
   ROLE_OPTIONS,
 } from "../lib/types";
+import { supabase } from "../lib/supabase";
 import { generatePassCode, saveAttendeeToStorage } from "../lib/utils";
 
 interface RegistrationFormProps {
@@ -28,6 +29,7 @@ export default function RegistrationForm({ onSuccess }: RegistrationFormProps) {
   });
 
   const [errors, setErrors] = useState<FormErrors>({});
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const validate = (): boolean => {
@@ -70,7 +72,6 @@ export default function RegistrationForm({ onSuccess }: RegistrationFormProps) {
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
@@ -82,6 +83,8 @@ export default function RegistrationForm({ onSuccess }: RegistrationFormProps) {
       [name]: type === "checkbox" ? checked : value,
     }));
 
+    if (submitError) setSubmitError(null);
+
     // Clear error for that field if it exists
     if (errors[name as keyof FormErrors]) {
       setErrors((prev) => ({
@@ -91,7 +94,7 @@ export default function RegistrationForm({ onSuccess }: RegistrationFormProps) {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!validate()) {
@@ -101,11 +104,39 @@ export default function RegistrationForm({ onSuccess }: RegistrationFormProps) {
     }
 
     setIsSubmitting(true);
+    setSubmitError(null);
 
-    setTimeout(() => {
+    try {
+      const { data, error } = await supabase.functions.invoke(
+        "register-attendee",
+        {
+          body: {
+            first_name: formData.firstName.trim(),
+            last_name: formData.lastName.trim(),
+            organization: formData.organisation.trim(),
+            role: formData.role,
+            email: formData.email.trim().toLowerCase(),
+            phone: formData.phone.trim() || undefined,
+            dietary_requirements: formData.dietary.trim() || undefined,
+          },
+        }
+      );
+
+      if (error) {
+        throw error;
+      }
+
+      if (!data?.success) {
+        throw new Error(data?.error || "Registration failed");
+      }
+
+      const registered = data.attendee;
+
       const passCode = generatePassCode();
       const newAttendee: AttendeeRegistration = {
-        id: "att_" + Date.now() + "_" + Math.random().toString(36).substring(2, 7),
+        id:
+          (registered?.unique_id as string) ||
+          "att_" + Date.now() + "_" + Math.random().toString(36).substring(2, 7),
         passCode,
         firstName: formData.firstName.trim(),
         lastName: formData.lastName.trim(),
@@ -118,13 +149,21 @@ export default function RegistrationForm({ onSuccess }: RegistrationFormProps) {
         accessibility: formData.accessibility.trim() || undefined,
         travel: formData.travel.trim() || undefined,
         consentAgreed: formData.consentAgreed,
-        registeredAt: new Date().toISOString(),
+        registeredAt:
+          (registered?.created_at as string) || new Date().toISOString(),
       };
 
       saveAttendeeToStorage(newAttendee);
-      setIsSubmitting(false);
       onSuccess(newAttendee);
-    }, 600);
+    } catch (err) {
+      const message =
+        err instanceof Error
+          ? err.message
+          : "Registration failed. Please try again.";
+      setSubmitError(message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -139,6 +178,13 @@ export default function RegistrationForm({ onSuccess }: RegistrationFormProps) {
       </div>
 
       <form onSubmit={handleSubmit} noValidate className="space-y-5">
+        {submitError && (
+          <div className="p-3.5 rounded-xl border border-red-200 bg-red-50 text-red-800 text-sm font-medium flex items-start gap-2">
+            <span>⚠</span>
+            <span>{submitError}</span>
+          </div>
+        )}
+
         {/* Name Fields: 2 Columns */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
