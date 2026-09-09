@@ -1,6 +1,8 @@
 {
   "scripts": {
-    "dev": "supabase start"
+    "dev": "supabase start",
+    "functions:serve": "supabase functions serve register-attendee",
+    "status": "supabase status"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.116.0",
