@@ -46,3 +46,59 @@ export const EVENT_DETAILS = {
     partners: "38",
   },
 };
+
+// ============================================================
+// Day 3: Event Check-In Types
+// ============================================================
+
+export interface Day3Attendee {
+  id: string;
+  full_name: string;
+  email: string | null;
+  phone: string | null;
+  qr_code: string | null;
+  accommodation: string | null;
+  created_at: string;
+}
+
+export interface CheckIn {
+  id: string;
+  attendee_id: string;
+  check_in_date: string;
+  checked_in_at: string;
+  checked_in_by: string | null;
+}
+
+export interface CheckInWithAttendee extends CheckIn {
+  attendees: Day3Attendee;
+}
+
+export interface AdminUser {
+  id: string;
+  user_id: string;
+  role: string;
+  created_at: string;
+}
+
+export interface CheckInResult {
+  success: boolean;
+  message: string;
+  check_in?: {
+    id: string;
+    checked_in_at: string;
+    check_in_date: string;
+  };
+  attendee?: {
+    id: string;
+    full_name: string;
+    email: string | null;
+    accommodation: string | null;
+    qr_code?: string | null;
+  };
+}
+
+export interface HeadcountData {
+  totalRegistered: number;
+  checkedInToday: number;
+  remaining: number;
+}
