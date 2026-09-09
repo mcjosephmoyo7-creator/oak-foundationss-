@@ -24,3 +24,26 @@ body {
   color: var(--foreground);
   font-family: var(--font-geist-sans), "Trebuchet MS", Arial, sans-serif;
 }
+
+@keyframes scan-line {
+  0% { top: 0%; opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { top: 100%; opacity: 0; }
+}
+
+.scan-line {
+  animation: scan-line 2s ease-in-out infinite;
+}
+
+/* html5-qrcode overrides */
+#qr-scanner-region > div {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+#qr-scanner-region video {
+  object-fit: cover !important;
+  width: 100% !important;
+  height: 100% !important;
+}
