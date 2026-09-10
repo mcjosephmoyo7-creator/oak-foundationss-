@@ -18,27 +18,28 @@ export default function RegistrationPage() {
   return (
     <div className="min-h-screen bg-[#f4f6f9]">
       <Sidebar />
-      <main className="ml-0 min-h-screen px-3 py-5 sm:ml-29 sm:px-6 lg:py-6">
-        <div className="mx-auto w-full max-w-73">
+      <main className="min-h-screen px-4 pb-10 pt-16 sm:ml-29 sm:px-6 sm:pt-8 lg:px-10 lg:py-10">
+        <div className="mx-auto w-full max-w-3xl">
           {attendee ? (
             <AttendeePass attendee={attendee} onRegisterAnother={() => setAttendee(null)} />
           ) : (
             <>
-              <section className="rounded-xl bg-[#203b68] px-3.5 py-3.5 text-white shadow-sm">
-                <h1 className="text-[15px] font-bold leading-tight">Partner<br />Convening 2026</h1>
-                <p className="mt-1 text-[6px] text-blue-100">Geneva · 9–11 March 2026</p>
+              <section className="rounded-2xl bg-[#203b68] px-5 py-6 text-white shadow-sm sm:px-7 sm:py-7">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-100">OAK Foundation</p>
+                <h1 className="mt-2 text-2xl font-bold leading-tight sm:text-3xl">Partner Convening 2026</h1>
+                <p className="mt-2 text-sm text-blue-100">Harare, Zimbabwe · 9–11 March 2026</p>
               </section>
 
-              <section className="mt-2 grid grid-cols-3 gap-1.5">
+              <section className="mt-4 grid grid-cols-3 gap-2 sm:gap-3">
                 {STATS.map(([value, label]) => (
-                  <div key={label} className="rounded-[10px] bg-white px-2 py-2 shadow-sm ring-1 ring-gray-200/70">
-                    <p className="text-[11px] font-bold text-[#152746]">{value}</p>
-                    <p className="text-[5px] text-gray-400">{label}</p>
+                  <div key={label} className="rounded-xl bg-white px-3 py-3 shadow-sm ring-1 ring-gray-200/70 sm:px-4 sm:py-4">
+                    <p className="text-lg font-bold text-[#152746] sm:text-xl">{value}</p>
+                    <p className="mt-0.5 text-xs text-gray-500 sm:text-sm">{label}</p>
                   </div>
                 ))}
               </section>
 
-              <div className="registration-form-compact mt-2">
+              <div className="mt-4">
                 <RegistrationForm onSuccess={setAttendee} />
               </div>
             </>

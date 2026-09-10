@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import { AttendeeRegistration, EVENT_DETAILS } from "../lib/types";
 import QRCodeSVG from "./QRCodeSVG";
 
@@ -14,6 +15,7 @@ export default function AttendeePass({
   onRegisterAnother,
 }: AttendeePassProps) {
   const [isDownloading, setIsDownloading] = useState(false);
+  const router = useRouter();
 
   const handleDownloadPass = () => {
     setIsDownloading(true);
@@ -120,33 +122,33 @@ export default function AttendeePass({
             </svg>
           </div>
           <div>
-            <span className="block text-[6px] font-semibold uppercase tracking-[0.14em] text-white/60">
+            <span className="block text-xs font-semibold uppercase tracking-[0.14em] text-white/60">
               Registration Complete
             </span>
-            <h2 className="text-[13px] font-bold leading-tight text-white">
+            <h2 className="text-xl font-bold leading-tight text-white sm:text-2xl">
               You&apos;re Registered, {attendee.firstName}!
             </h2>
-            <p className="mt-1 text-[6px] text-white/55">{attendee.organisation}</p>
+            <p className="mt-1 text-sm text-white/70">{attendee.organisation}</p>
           </div>
         </div>
       </div>
 
       <div className="space-y-2.5">
         <div className="flex flex-col items-center rounded-xl bg-white px-3 py-3 shadow-sm ring-1 ring-gray-200/70">
-          <p className="text-[6px] font-semibold uppercase tracking-[0.15em] text-[#62718a]">Your Entry Pass</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.15em] text-[#62718a]">Your Entry Pass</p>
           <div className="mt-2 rounded-xl bg-[#edf2f6] p-2">
             <div id="attendee-qr-code" className="rounded-lg bg-white p-1.5">
               <QRCodeSVG value={attendee.passCode} size={132} level="M" fgColor="#0F223D" />
             </div>
           </div>
-          <p className="mt-2 font-mono text-[6px] font-semibold tracking-[0.12em] text-[#203b68]">{attendee.passCode}</p>
-          <p className="mt-1 text-[6px] text-gray-400">Present at event entrance for check-in</p>
+          <p className="mt-2 font-mono text-sm font-semibold tracking-[0.12em] text-[#203b68]">{attendee.passCode}</p>
+          <p className="mt-1 text-xs text-gray-400">Present at event entrance for check-in</p>
         </div>
 
         <div className="rounded-xl bg-white px-3 py-2.5 shadow-sm ring-1 ring-gray-200/70">
-          <h3 className="border-b border-gray-100 pb-2 text-[6px] font-semibold uppercase tracking-[0.14em] text-[#62718a]">Registration Details</h3>
+          <h3 className="border-b border-gray-100 pb-2 text-xs font-semibold uppercase tracking-[0.14em] text-[#62718a]">Registration Details</h3>
 
-          <dl className="divide-y divide-gray-100 text-[7px]">
+          <dl className="divide-y divide-gray-100 text-sm">
                 <div className="flex items-center justify-between py-1.5">
                   <dt className="text-gray-500">Name</dt>
                   <dd className="font-semibold text-gray-900">
@@ -233,10 +235,18 @@ export default function AttendeePass({
           </dl>
         </div>
 
-        <button type="button" onClick={handleDownloadPass} disabled={isDownloading} className="flex w-full items-center justify-center gap-1.5 rounded-[7px] bg-[#203b68] px-3 py-2.5 text-[7px] font-semibold text-white shadow-sm transition-colors hover:bg-[#172d50] disabled:opacity-60">
+        <button type="button" onClick={handleDownloadPass} disabled={isDownloading} className="flex w-full items-center justify-center gap-1.5 rounded-lg bg-[#203b68] px-3 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#172d50] disabled:opacity-60">
           <span>↓</span>{isDownloading ? "Generating QR Code..." : "Download QR Code"}
         </button>
-        <button type="button" onClick={onRegisterAnother} className="flex w-full items-center justify-center gap-1.5 py-1 text-[7px] text-gray-500 transition-colors hover:text-[#203b68]">
+        <div className="grid grid-cols-2 gap-1.5">
+          <button type="button" onClick={() => router.push("/dashboard/programme")} className="flex items-center justify-center rounded-lg bg-[#edf2f6] px-2 py-3 text-sm font-semibold text-[#203b68] transition-colors hover:bg-[#e2e9f0]">
+            View Programme
+          </button>
+          <button type="button" onClick={() => router.push("/dashboard")} className="flex items-center justify-center rounded-lg bg-[#edf2f6] px-2 py-3 text-sm font-semibold text-[#203b68] transition-colors hover:bg-[#e2e9f0]">
+            Open Check-In
+          </button>
+        </div>
+        <button type="button" onClick={onRegisterAnother} className="flex w-full items-center justify-center gap-1.5 py-2 text-sm text-gray-500 transition-colors hover:text-[#203b68]">
           <span>↻</span> Register next attendee
         </button>
       </div>
