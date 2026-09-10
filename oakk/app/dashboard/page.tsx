@@ -34,7 +34,7 @@ export default function CheckInPage() {
 
     return (
       <div className="space-y-2.5">
-        <div className="relative overflow-hidden rounded-[12px] bg-[#16b889] px-3.5 py-3 text-white shadow-sm">
+        <div className="relative overflow-hidden rounded-xl bg-[#16b889] px-3.5 py-3 text-white shadow-sm">
           <div className="absolute -right-7 -top-8 h-24 w-24 rounded-full bg-white/10" />
           <div className="relative flex items-center gap-2.5">
             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/15">
@@ -49,7 +49,7 @@ export default function CheckInPage() {
           </div>
         </div>
 
-        <div className="rounded-[12px] bg-white p-3 shadow-sm ring-1 ring-gray-200/70">
+        <div className="rounded-xl bg-white p-3 shadow-sm ring-1 ring-gray-200/70">
           <div className="flex items-center gap-2">
             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#142c52] text-[9px] font-bold text-white">{getInitials(name)}</div>
             <div className="min-w-0">
@@ -70,7 +70,7 @@ export default function CheckInPage() {
           </div>
         </div>
 
-        <div className="rounded-[12px] bg-white p-3 shadow-sm ring-1 ring-gray-200/70">
+        <div className="rounded-xl bg-white p-3 shadow-sm ring-1 ring-gray-200/70">
           <p className="text-[6px] uppercase tracking-[0.12em] text-gray-500">Live event status</p>
           <p className="mt-2 text-[7px] font-semibold text-gray-700"><span className="mr-1 inline-block h-1.5 w-1.5 rounded-full bg-emerald-500" />Opening Plenary starting at 09:30</p>
           <p className="mt-1 text-[6px] text-gray-400">74 of 110 attendees checked in · Main Hall A</p>
@@ -87,14 +87,14 @@ export default function CheckInPage() {
 
   const renderFailure = () => (
     <div className="space-y-2.5">
-      <div className="relative overflow-hidden rounded-[12px] bg-[#f04449] px-3.5 py-3 text-white shadow-sm">
+      <div className="relative overflow-hidden rounded-xl bg-[#f04449] px-3.5 py-3 text-white shadow-sm">
         <div className="absolute -right-7 -top-8 h-24 w-24 rounded-full bg-white/10" />
         <div className="relative flex items-center gap-2.5">
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/15"><svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><circle cx="12" cy="12" r="8.5" /><path strokeLinecap="round" d="m9 9 6 6m0-6-6 6" /></svg></div>
           <div><p className="text-[6px] uppercase tracking-[0.12em] text-white/65">Check-in failed</p><p className="mt-0.5 text-[11px] font-bold leading-tight">QR Not Recognised</p><p className="mt-0.5 text-[7px] text-white/65">Code is invalid or unregistered</p></div>
         </div>
       </div>
-      <div className="rounded-[12px] bg-white p-3 shadow-sm ring-1 ring-gray-200/70">
+      <div className="rounded-xl bg-white p-3 shadow-sm ring-1 ring-gray-200/70">
         <p className="text-[8px] font-bold text-gray-700"><span className="mr-1 text-red-500">△</span>Possible reasons</p>
         <ul className="mt-2 space-y-1.5 text-[7px] text-gray-500">
           <li><span className="mr-1.5 text-red-400">●</span>QR code belongs to a different event</li>
@@ -109,7 +109,7 @@ export default function CheckInPage() {
   );
 
   return (
-    <div className={`w-full ${scanResult ? "max-w-[342px]" : "max-w-[266px]"} mx-auto space-y-2`}>
+    <div className={`w-full ${scanResult ? "max-w-85.5" : "max-w-66.5"} mx-auto space-y-2`}>
       {/* Page header */}
       {!scanResult && (
         <div>

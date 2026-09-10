@@ -1,3 +1,4 @@
+@import url("https://api.fontshare.com/v2/css?f[]=chillax@500,600,700&display=swap");
 @import "tailwindcss";
 
 :root {
@@ -22,7 +23,43 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-geist-sans), "Trebuchet MS", Arial, sans-serif;
+  font-family: "Chillax", var(--font-geist-sans), sans-serif;
+  font-weight: 600;
+}
+
+.programme-shell {
+  font-family: "Chillax", "Avenir Next", var(--font-geist-sans), sans-serif;
+  font-weight: 600;
+}
+
+.programme-dot {
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  margin-right: 3px;
+  border-radius: 999px;
+}
+
+.programme-divider {
+  display: grid;
+  grid-template-columns: 27px 1fr auto;
+  align-items: center;
+  gap: 4px;
+  min-height: 18px;
+  color: #748197;
+  font-size: 6px;
+}
+
+.programme-divider i {
+  height: 1px;
+  background: #e4e8ee;
+}
+
+.programme-divider em {
+  min-width: 0;
+  color: #8c97a8;
+  font-style: normal;
+  white-space: nowrap;
 }
 
 @keyframes scan-line {
@@ -34,6 +71,57 @@ body {
 
 .scan-line {
   animation: scan-line 2s ease-in-out infinite;
+}
+
+.registration-form-compact > div {
+  padding: 10px;
+  border-radius: 12px;
+}
+
+.registration-form-compact > div > div:first-child {
+  padding-bottom: 8px;
+  margin-bottom: 10px;
+}
+
+.registration-form-compact h2 {
+  font-size: 10px;
+}
+
+.registration-form-compact h3,
+.registration-form-compact label,
+.registration-form-compact input,
+.registration-form-compact select,
+.registration-form-compact textarea,
+.registration-form-compact button,
+.registration-form-compact p,
+.registration-form-compact span {
+  font-size: 6px;
+}
+
+.registration-form-compact form {
+  gap: 8px;
+}
+
+.registration-form-compact input,
+.registration-form-compact select,
+.registration-form-compact textarea {
+  min-height: 25px;
+  padding: 6px 8px;
+  border-radius: 7px;
+}
+
+.registration-form-compact textarea {
+  min-height: 45px;
+}
+
+.registration-form-compact button[type="submit"] {
+  min-height: 27px;
+  padding: 6px 10px;
+}
+
+.registration-form-compact .text-xs,
+.registration-form-compact .text-sm {
+  font-size: 6px;
 }
 
 /* html5-qrcode overrides */

@@ -1,4 +1,4 @@
-import { createClient } from "npm:@supabase/supabase-js@2";
+import { createClient } from "@supabase/supabase-js";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -7,7 +7,14 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-Deno.serve(async (req) => {
+type DenoRuntime = {
+  env: { get(name: string): string | undefined };
+  serve(handler: (req: Request) => Response | Promise<Response>): void;
+};
+
+const deno = (globalThis as typeof globalThis & { Deno: DenoRuntime }).Deno;
+
+deno.serve(async (req: Request) => {
   // Handle browser CORS preflight request
   if (req.method === "OPTIONS") {
     return new Response("ok", {
@@ -35,8 +42,10 @@ Deno.serve(async (req) => {
   try {
     // Get Supabase credentials automatically provided
     // to the Edge Function
-    const supabaseUrl = Deno.env.get("SUPABASE_URL");
-    const supabaseKey = Deno.env.get("SUPABASE_ANON_KEY");
+    const supabaseUrl = deno.env.get("SUPABASE_URL");
+    const supabaseKey =
+      deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ||
+      deno.env.get("SUPABASE_ANON_KEY");
 
     if (!supabaseUrl || !supabaseKey) {
       throw new Error(
@@ -107,7 +116,7 @@ Deno.serve(async (req) => {
       data: existingAttendee,
       error: existingError,
     } = await supabase
-      .from("attendes")
+      .from("attendees")
       .select("id")
       .eq("email", email.toLowerCase().trim())
       .maybeSingle();
@@ -150,40 +159,21 @@ Deno.serve(async (req) => {
 
     // Generate a unique ID
     // This can be used as the attendee's QR identifier
-    const uniqueId = crypto.randomUUID();
+    const qrCode = `OAK-2026-${crypto.randomUUID().slice(0, 8).toUpperCase()}`;
 
     // Insert attendee into Supabase
     const { data, error } = await supabase
-      .from("attendes")
+      .from("attendees")
       .insert({
-        first_name: first_name.trim(),
-        last_name: last_name.trim(),
+        full_name: `${first_name.trim()} ${last_name.trim()}`,
         email: email.trim().toLowerCase(),
-
-        organization:
-          organization?.trim() || null,
-
-        role:
-          role?.trim() || null,
-
-        phone:
-          phone?.trim() || null,
-
-        dietary_requirements:
-          dietary_requirements?.trim() || null,
-
-        // IMPORTANT:
-        // These database column names contain hyphen/spelling
-        // exactly as defined in the Supabase database.
-        "travel-support":
-          travel_support ?? false,
-
-        accomodation_needed:
-          accommodation_needed ?? false,
-
-        unique_id: uniqueId,
-
-        status: "registered",
+        phone: phone?.trim() || null,
+        organization: organization?.trim() || null,
+        role: role?.trim() || null,
+        dietary_requirements: dietary_requirements?.trim() || null,
+        travel_support: travel_support ?? false,
+        accommodation_needed: accommodation_needed ?? false,
+        qr_code: qrCode,
       })
       .select()
       .single();

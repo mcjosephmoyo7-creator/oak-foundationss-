@@ -59,7 +59,7 @@ export default function RecentCheckins() {
   ];
 
   return (
-    <div className="bg-white rounded-[9px] border border-gray-200 shadow-sm">
+    <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
       <div className="px-2.5 pt-2.5 pb-1.5">
         <h3 className="text-[7px] font-bold text-gray-500 uppercase tracking-[0.12em]">Simulate QR Scan</h3>
       </div>

@@ -19,6 +19,27 @@ export default function QRScanner({ onScanResult, onScanStart }: QRScannerProps)
   const containerRef = useRef<HTMLDivElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
   const cooldownRef = useRef(false);
+  const cameraActiveRef = useRef(false);
+
+  const stopScanner = useCallback(async () => {
+    const scanner = scannerRef.current;
+    if (!scanner) return;
+
+    if (cameraActiveRef.current) {
+      try {
+        await scanner.stop();
+      } catch {
+        // The camera may already be stopping during component cleanup.
+      }
+      cameraActiveRef.current = false;
+    }
+
+    try {
+      scanner.clear();
+    } catch {
+      // The scanner may already be cleared during component cleanup.
+    }
+  }, []);
 
   const processCode = useCallback(async (decodedText: string) => {
     if (cooldownRef.current) return;
@@ -70,30 +91,34 @@ export default function QRScanner({ onScanResult, onScanStart }: QRScannerProps)
     try {
       const { Html5Qrcode } = await import("html5-qrcode");
 
-      if (scannerRef.current) {
-        try { await scannerRef.current.stop(); } catch {}
-        try { scannerRef.current.clear(); } catch {}
-      }
+      await stopScanner();
 
       const scanner = new Html5Qrcode("qr-scanner-region");
       scannerRef.current = scanner;
-
-      await scanner.start(
-        { facingMode: "environment" },
-        {
-          fps: 10,
-          qrbox: (viewfinderWidth: number, viewfinderHeight: number) => {
-            const size = Math.min(viewfinderWidth, viewfinderHeight) * 0.7;
-            return { width: size, height: size };
-          },
-          aspectRatio: 1.0,
+      const scannerConfig = {
+        fps: 10,
+        qrbox: (viewfinderWidth: number, viewfinderHeight: number) => {
+          const size = Math.min(viewfinderWidth, viewfinderHeight) * 0.7;
+          return { width: size, height: size };
         },
-        (decodedText) => {
-          processCode(decodedText);
-        },
-        () => {}
-      );
+        aspectRatio: 1.0,
+      };
+      const onDecode = (decodedText: string) => {
+        processCode(decodedText);
+      };
 
+      try {
+        await scanner.start({ facingMode: "environment" }, scannerConfig, onDecode, () => {});
+      } catch {
+        const cameras = await Html5Qrcode.getCameras();
+        const camera = cameras.find((device) => /back|rear|environment/i.test(device.label)) || cameras[0];
+
+        if (!camera) throw new Error("No camera found");
+
+        await scanner.start({ deviceId: { exact: camera.id } }, scannerConfig, onDecode, () => {});
+      }
+
+      cameraActiveRef.current = true;
       setState("scanning");
     } catch (err: unknown) {
       const msg = typeof err === "string" ? err : err instanceof Error ? err.message : "";
@@ -109,7 +134,7 @@ export default function QRScanner({ onScanResult, onScanStart }: QRScannerProps)
         setErrorMsg(msg || "Failed to start camera. Please try again.");
       }
     }
-  }, [processCode, onScanStart]);
+  }, [processCode, onScanStart, stopScanner]);
 
   const scanFromGallery = useCallback(async (file: File) => {
     setState("reading");
@@ -117,42 +142,40 @@ export default function QRScanner({ onScanResult, onScanStart }: QRScannerProps)
 
     try {
       const { Html5Qrcode } = await import("html5-qrcode");
-      const scanner = scannerRef.current ?? new Html5Qrcode("qr-scanner-region");
+      await stopScanner();
+      const scanner = new Html5Qrcode("qr-scanner-region");
       scannerRef.current = scanner;
       const decodedText = await scanner.scanFile(file, true);
       await processCode(decodedText);
-      scanner.clear();
+      await stopScanner();
     } catch {
       setState("error");
       setErrorMsg("No QR code was found in that image. Try another photo.");
     }
-  }, [processCode]);
+  }, [processCode, stopScanner]);
 
   useEffect(() => {
     return () => {
-      if (scannerRef.current) {
-        try { scannerRef.current.stop(); } catch {}
-        try { scannerRef.current.clear(); } catch {}
-      }
+      void stopScanner();
     };
-  }, []);
+  }, [stopScanner]);
 
   return (
     <div
-      className="w-full bg-[#111927] rounded-[9px] overflow-hidden shadow-md"
+      className="w-full bg-[#111927] rounded-lg overflow-hidden shadow-md"
       onClick={state === "idle" ? startScanner : undefined}
     >
       <div className="relative w-full aspect-[0.9] bg-[#111927] overflow-hidden">
         <div
           ref={containerRef}
           id="qr-scanner-region"
-          className="w-full h-full [&>div]:!w-full [&>div]:!h-full [&_video]:!object-cover [&_video]:!w-full [&_video]:!h-full [&_img]:!hidden"
+          className="w-full h-full [&>div]:w-full! [&>div]:h-full! [&_video]:object-cover! [&_video]:w-full! [&_video]:h-full! [&_img]:hidden!"
         />
 
         {/* Scan brackets overlay */}
         {(state === "scanning" || state === "idle") && (
           <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-            <div className="relative w-[34%] aspect-square min-w-[150px] max-w-[280px]">
+            <div className="relative w-[34%] aspect-square min-w-37.5 max-w-70">
               {/* Top-left */}
               <div className="absolute top-0 left-0 w-7 h-7 border-t border-l border-white/70 rounded-tl-md" />
               {/* Top-right */}
@@ -165,7 +188,7 @@ export default function QRScanner({ onScanResult, onScanStart }: QRScannerProps)
               {/* Scanning line animation */}
               {state === "scanning" && (
                 <div className="absolute inset-x-0 top-0 bottom-0 overflow-hidden">
-                  <div className="absolute inset-x-2 h-0.5 bg-gradient-to-r from-transparent via-cyan-400 to-transparent scan-line" />
+                  <div className="absolute inset-x-2 h-0.5 bg-linear-to-r from-transparent via-cyan-400 to-transparent scan-line" />
                 </div>
               )}
             </div>

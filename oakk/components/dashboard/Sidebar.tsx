@@ -5,16 +5,18 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const NAV_ITEMS = [
+  { label: "Register", href: "/register", icon: "register" },
   { label: "Check In", href: "/dashboard", icon: "scan" },
-  { label: "Programme", href: "/dashboard/attendees", icon: "calendar" },
+  { label: "Programme", href: "/dashboard/programme", icon: "calendar" },
   { label: "Partners", href: "/dashboard/export", icon: "users" },
   { label: "Attendance", href: "/dashboard/attendees", icon: "grid" },
-];
+] as const;
 
 type NavIconName = (typeof NAV_ITEMS)[number]["icon"];
 
 function NavIcon({ name }: { name: NavIconName }) {
   const paths = {
+    register: <><circle cx="8" cy="8" r="2.5" /><path d="M3.5 15c.4-2 1.9-3 4.5-3" /><path d="M14 11v6M11 14h6" /></>,
     scan: <><path d="M4 8V5a1 1 0 0 1 1-1h3" /><path d="M16 8V5a1 1 0 0 0-1-1h-3" /><path d="M4 12v3a1 1 0 0 0 1 1h3" /><path d="M16 12v3a1 1 0 0 1-1 1h-3" /><path d="M7 10h6" /></>,
     calendar: <><rect x="3.5" y="4.5" width="13" height="12" rx="1.5" /><path d="M6.5 3.5v3M13.5 3.5v3M3.5 8h13" /></>,
     users: <><circle cx="8" cy="8" r="2.5" /><path d="M3.5 15c.4-2 1.9-3 4.5-3s4.1 1 4.5 3M13 6.2a2.5 2.5 0 0 1 0 4.6M14 12c1.8.2 2.8 1.2 3 3" /></>,
@@ -37,6 +39,10 @@ export default function Sidebar() {
     return pathname.startsWith(href);
   };
 
+  const visibleItems = pathname.startsWith("/register")
+    ? NAV_ITEMS.filter((item) => ["register", "scan", "calendar", "users"].includes(item.icon))
+    : NAV_ITEMS.filter((item) => item.href !== "/register");
+
   const sidebarContent = (
     <div className="flex flex-col h-full">
       <div className="px-2 pt-3 pb-5">
@@ -50,7 +56,7 @@ export default function Sidebar() {
       </div>
 
       <nav className="flex-1 px-2 space-y-0.5">
-        {NAV_ITEMS.map((item) => {
+        {visibleItems.map((item) => {
           const active = isActive(item.href);
           return (
             <Link
@@ -95,7 +101,8 @@ export default function Sidebar() {
       <button
         type="button"
         onClick={() => setMobileOpen(!mobileOpen)}
-        className="hidden"
+        aria-label={mobileOpen ? "Close navigation" : "Open navigation"}
+        className="fixed left-3 top-3 z-50 flex h-9 w-9 items-center justify-center rounded-lg bg-[#0F223D] text-white shadow-md md:hidden"
       >
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
           {mobileOpen ? (
@@ -109,14 +116,14 @@ export default function Sidebar() {
       {/* Mobile overlay */}
       {mobileOpen && (
         <div
-          className="hidden"
+          className="fixed inset-0 z-30 bg-[#0F223D]/30 md:hidden"
           onClick={() => setMobileOpen(false)}
         />
       )}
 
       {/* Sidebar */}
       <aside
-        className="fixed top-0 left-0 z-40 h-screen w-[116px] bg-white border-r border-gray-200 flex flex-col"
+        className={`fixed top-0 left-0 z-40 h-screen w-29 bg-white border-r border-gray-200 flex flex-col transition-transform md:translate-x-0 ${mobileOpen ? "translate-x-0" : "-translate-x-full"}`}
       >
         {sidebarContent}
       </aside>

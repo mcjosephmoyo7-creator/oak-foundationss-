@@ -74,7 +74,7 @@ export default function DigitalNametag({ attendee }: DigitalNametagProps) {
       </div>
 
       {/* Lanyard Bottom Accent */}
-      <div className="h-2 bg-gradient-to-r from-blue-600 via-[#0F223D] to-indigo-600" />
+      <div className="h-2 bg-linear-to-r from-blue-600 via-[#0F223D] to-indigo-600" />
     </div>
   );
 }

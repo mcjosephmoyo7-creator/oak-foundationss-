@@ -118,6 +118,8 @@ export default function RegistrationForm({ onSuccess }: RegistrationFormProps) {
             email: formData.email.trim().toLowerCase(),
             phone: formData.phone.trim() || undefined,
             dietary_requirements: formData.dietary.trim() || undefined,
+            travel_support: formData.travel === "yes",
+            accommodation_needed: formData.accessibility.trim() !== "",
           },
         }
       );
@@ -132,10 +134,13 @@ export default function RegistrationForm({ onSuccess }: RegistrationFormProps) {
 
       const registered = data.attendee;
 
-      const passCode = generatePassCode();
+      const passCode =
+        (registered?.qr_code as string) ||
+        (registered?.unique_id as string) ||
+        generatePassCode();
       const newAttendee: AttendeeRegistration = {
         id:
-          (registered?.unique_id as string) ||
+          (registered?.id as string) ||
           "att_" + Date.now() + "_" + Math.random().toString(36).substring(2, 7),
         passCode,
         firstName: formData.firstName.trim(),
@@ -509,7 +514,7 @@ export default function RegistrationForm({ onSuccess }: RegistrationFormProps) {
                 <span>Generating Entry Pass &amp; QR Code...</span>
               </>
             ) : (
-              <span>Register &amp; Generate QR Code</span>
+              <span>Register</span>
             )}
           </button>
         </div>

@@ -57,7 +57,7 @@ export default function ManualCodeEntry({ onScanResult }: ManualCodeEntryProps) 
   };
 
   return (
-    <div className="bg-white rounded-[9px] border border-gray-200 shadow-sm p-2.5">
+    <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-2.5">
       <h3 className="text-[7px] font-bold text-gray-500 uppercase tracking-[0.12em] mb-1">Manual Code Entry</h3>
       <div className="flex gap-1">
         <input
