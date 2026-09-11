@@ -60,10 +60,9 @@ export default function QRScanner({ onScanStart, onError }: QRScannerProps) {
       if (result.success) {
         setState("success");
 
-        // Navigate to the existing approval page
-        const encoded = btoa(JSON.stringify(result));
+        // Navigate to programme page after successful check-in
         await stopScanner();
-        router.push(`/dashboard/approved?r=${encodeURIComponent(encoded)}`);
+        router.push("/dashboard/programme");
         return;
       }
 

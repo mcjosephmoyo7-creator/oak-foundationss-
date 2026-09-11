@@ -34,7 +34,7 @@ export default function RegistrationPage() {
   return (
     <div className="min-h-screen bg-[#EDF1F7]">
       <Sidebar />
-      <main className="min-h-screen px-4 pb-10 pt-20 sm:px-6 sm:pt-8 lg:px-10 lg:py-10">
+      <main className="min-h-screen px-4 pb-24 pt-4 sm:px-6 md:ml-56 md:pt-8 lg:px-10 lg:py-10">
         <div className="mx-auto w-full max-w-3xl">
           {attendee ? (
             <AttendeePass attendee={attendee} onRegisterAnother={handleRegisterAnother} />
