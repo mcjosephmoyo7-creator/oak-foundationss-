@@ -1,0 +1,6 @@
+{
+  "buildCommand": "cd oakk && npm run build",
+  "devCommand": "cd oakk && npm run dev",
+  "installCommand": "cd oakk && npm install",
+  "framework": "nextjs"
+}
