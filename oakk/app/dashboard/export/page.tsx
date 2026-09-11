@@ -9,7 +9,7 @@ interface ExportRow extends Day3Attendee {
 }
 
 const partners = [
-  { name: "Africa Civil Alliance", focus: "Climate justice & grantmaking", location: "Nairobi, Kenya", tone: "bg-[#e8effa] text-[#294c82]" },
+  { name: "Africa Civil Alliance", focus: "Climate justice & grantmaking", location: "Nairobi, Kenya", tone: "bg-[#D6DEE8] text-[#1D3E6E]" },
   { name: "MENA Rights Group", focus: "Rights-based approaches", location: "Tunis, Tunisia", tone: "bg-[#fff3c9] text-[#bd8500]" },
   { name: "Digital Frontiers Institute", focus: "Digital rights & access", location: "Accra, Ghana", tone: "bg-[#f3eaff] text-[#8648dc]" },
   { name: "Nordic Evaluation Centre", focus: "Long-term change", location: "Helsinki, Finland", tone: "bg-[#fff0e6] text-[#d86b25]" },
@@ -69,45 +69,45 @@ export default function ExportPage() {
   return (
     <div className="programme-shell mx-auto w-full max-w-85.5 pb-5">
       <header className="mb-3">
-        <h1 className="text-[13px] font-extrabold tracking-[-0.02em] text-[#111b2c]">Partners</h1>
-        <p className="mt-0.5 text-[8px] text-[#7a879c]">OAK Partner Convening 2026</p>
+        <h1 className="text-[13px] font-extrabold tracking-[-0.02em] text-[#162E55]">Partners</h1>
+        <p className="mt-0.5 text-[8px] text-[#3A5A85]">OAK Partner Convening 2026</p>
       </header>
 
-      <section className="mb-4 rounded-xl bg-[#17253e] px-3.5 py-3 text-white shadow-[0_7px_16px_rgba(23,37,62,0.2)]">
-        <p className="text-[6px] font-semibold uppercase tracking-[0.13em] text-white/55">01 / Convening network</p>
+      <section className="mb-4 rounded-xl bg-[#162E55] px-3.5 py-3 text-[#EDF1F7] shadow-[0_7px_16px_rgba(13,26,51,0.2)]">
+        <p className="text-[6px] font-semibold uppercase tracking-[0.13em] text-[#EDF1F7]/55">01 / Convening network</p>
         <h2 className="mt-2 text-[11px] font-extrabold tracking-tight">Partners shaping change together</h2>
-        <p className="mt-1.5 text-[7px] leading-3 text-white/55">Meet the organisations joining this year&apos;s conversations across regions and movements.</p>
+        <p className="mt-1.5 text-[7px] leading-3 text-[#EDF1F7]/55">Meet the organisations joining this year&apos;s conversations across regions and movements.</p>
       </section>
 
       <section aria-labelledby="partner-directory-heading">
         <div className="mb-2 flex items-center justify-between">
-          <h2 id="partner-directory-heading" className="text-[8px] font-extrabold text-[#17243a]">02 / Partner Directory</h2>
-          <span className="text-[6px] text-[#8c97a8]">{partners.length} organisations</span>
+          <h2 id="partner-directory-heading" className="text-[8px] font-extrabold text-[#162E55]">02 / Partner Directory</h2>
+          <span className="text-[6px] text-[#3A5A85]">{partners.length} organisations</span>
         </div>
         <div className="space-y-1.5">
           {partners.map((partner) => (
-            <article key={partner.name} className="flex items-center gap-2 rounded-xl bg-white px-2.5 py-2.5 shadow-[0_3px_10px_rgba(31,48,77,0.09)]">
+            <article key={partner.name} className="flex items-center gap-2 rounded-xl bg-[#F7FAFD] px-2.5 py-2.5 shadow-[0_3px_10px_rgba(22,46,85,0.09)]">
               <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-[9px] font-extrabold ${partner.tone}`}>
                 {partner.name.slice(0, 1)}
               </div>
               <div className="min-w-0 flex-1">
-                <h3 className="truncate text-[8px] font-bold leading-2.5 text-[#17243a]">{partner.name}</h3>
-                <p className="mt-0.5 truncate text-[6px] text-[#718097]">{partner.focus}</p>
-                <p className="mt-0.5 truncate text-[6px] text-[#9aa5b5]">⌖ {partner.location}</p>
+                <h3 className="truncate text-[8px] font-bold leading-2.5 text-[#162E55]">{partner.name}</h3>
+                <p className="mt-0.5 truncate text-[6px] text-[#3A5A85]">{partner.focus}</p>
+                <p className="mt-0.5 truncate text-[6px] text-[#5C7AA2]">⌖ {partner.location}</p>
               </div>
-              <span className="text-[9px] text-[#9aa5b5]">›</span>
+              <span className="text-[9px] text-[#5C7AA2]">›</span>
             </article>
           ))}
         </div>
       </section>
 
-      <section className="mt-4 rounded-xl bg-white px-3 py-3 shadow-[0_3px_10px_rgba(31,48,77,0.09)]">
+      <section className="mt-4 rounded-xl bg-[#F7FAFD] px-3 py-3 shadow-[0_3px_10px_rgba(22,46,85,0.09)]">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-[8px] font-extrabold text-[#17243a]">Resources</h2>
-            <p className="mt-1 text-[6px] text-[#718097]">Download the latest attendee directory.</p>
+            <h2 className="text-[8px] font-extrabold text-[#162E55]">Resources</h2>
+            <p className="mt-1 text-[6px] text-[#3A5A85]">Download the latest attendee directory.</p>
           </div>
-          <button type="button" onClick={exportCSV} disabled={loading} className="rounded-lg bg-[#19345b] px-2.5 py-2 text-[6px] font-semibold text-white transition-colors hover:bg-[#294c82] disabled:opacity-50">
+          <button type="button" onClick={exportCSV} disabled={loading} className="rounded-lg bg-[#1D3E6E] px-2.5 py-2 text-[6px] font-semibold text-[#EDF1F7] transition-colors hover:bg-[#1D3E6E] disabled:opacity-50">
             {loading ? "Exporting..." : "Download CSV"}
           </button>
         </div>

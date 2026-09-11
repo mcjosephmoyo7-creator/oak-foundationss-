@@ -32,7 +32,7 @@ export default function RegistrationPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f4f6f9]">
+    <div className="min-h-screen bg-[#EDF1F7]">
       <Sidebar />
       <main className="min-h-screen px-4 pb-10 pt-20 sm:px-6 sm:pt-8 lg:px-10 lg:py-10">
         <div className="mx-auto w-full max-w-3xl">
@@ -40,7 +40,7 @@ export default function RegistrationPage() {
             <AttendeePass attendee={attendee} onRegisterAnother={handleRegisterAnother} />
           ) : (
             <>
-              <section className="rounded-2xl bg-[#444444] px-5 py-6 text-white shadow-sm sm:px-7 sm:py-7">
+              <section className="rounded-2xl bg-[#162E55] px-5 py-6 text-[#EDF1F7] shadow-sm sm:px-7 sm:py-7">
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-100">OAK Foundation</p>
                 <h1 className="mt-2 text-2xl font-bold leading-tight sm:text-3xl">Partner Convening 2026</h1>
                 <p className="mt-2 text-sm text-blue-100">Harare, Zimbabwe · 9–11 March 2026</p>
@@ -48,9 +48,9 @@ export default function RegistrationPage() {
 
               <section className="mt-4 grid grid-cols-3 gap-2 sm:gap-3">
                 {STATS.map(([value, label]) => (
-                  <div key={label} className="rounded-xl bg-white px-3 py-3 shadow-sm ring-1 ring-gray-200/70 sm:px-4 sm:py-4">
-                    <p className="text-lg font-bold text-[#152746] sm:text-xl">{value}</p>
-                    <p className="mt-0.5 text-xs text-gray-500 sm:text-sm">{label}</p>
+                  <div key={label} className="rounded-xl bg-[#F7FAFD] px-3 py-3 shadow-sm ring-1 ring-[#D6DEE8]/70 sm:px-4 sm:py-4">
+                    <p className="text-lg font-bold text-[#162E55] sm:text-xl">{value}</p>
+                    <p className="mt-0.5 text-xs text-[#3A5A85] sm:text-sm">{label}</p>
                   </div>
                 ))}
               </section>

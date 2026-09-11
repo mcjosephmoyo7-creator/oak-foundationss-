@@ -47,18 +47,18 @@ export default function RecentCheckins() {
   };
 
   const avatarColors = [
-    "bg-[#444444]", "bg-blue-600", "bg-indigo-600", "bg-violet-600",
+    "bg-[#162E55]", "bg-blue-600", "bg-indigo-600", "bg-violet-600",
     "bg-teal-600", "bg-emerald-600", "bg-cyan-600",
   ];
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+    <div className="bg-[#F7FAFD] rounded-lg border border-[#D6DEE8] shadow-sm">
       <div className="px-2.5 pt-2.5 pb-1.5">
-        <h3 className="text-[7px] font-bold text-gray-500 uppercase tracking-[0.12em]">Recent Check-Ins</h3>
+        <h3 className="text-[7px] font-bold text-[#3A5A85] uppercase tracking-[0.12em]">Recent Check-Ins</h3>
       </div>
       <div className="px-2 pb-2 space-y-1">
         {checkins.length === 0 && (
-          <p className="text-[7px] text-gray-400 text-center py-3">No check-ins yet today</p>
+          <p className="text-[7px] text-[#5C7AA2] text-center py-3">No check-ins yet today</p>
         )}
         {checkins.map((ci, i) => {
           const name = ci.attendees?.full_name || "Unknown";
@@ -67,13 +67,13 @@ export default function RecentCheckins() {
           const knownRole = ci.attendees?.role?.trim();
           const fallbackRole = i === 1 ? "OAK Staff" : i === 2 ? "Coordination Team" : "Partner";
           return (
-            <div key={ci.id} className="px-1 py-1 flex items-center gap-1.5 border border-gray-100 rounded-md">
-              <div className={`w-4 h-4 rounded-full ${color} text-white flex items-center justify-center text-[5px] font-bold shrink-0`}>
+            <div key={ci.id} className="px-1 py-1 flex items-center gap-1.5 border border-[#E2E9F1] rounded-md">
+              <div className={`w-4 h-4 rounded-full ${color} text-[#EDF1F7] flex items-center justify-center text-[5px] font-bold shrink-0`}>
                 {getInitials(name)}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-[7px] font-semibold text-gray-900 truncate">{name}</p>
-                <p className="text-[5px] text-gray-400 font-mono">{passCode}</p>
+                <p className="text-[7px] font-semibold text-[#162E55] truncate">{name}</p>
+                <p className="text-[5px] text-[#5C7AA2] font-mono">{passCode}</p>
               </div>
               <div className="text-right shrink-0">
                 <span className={`inline-flex items-center px-1 py-0.5 rounded-full text-[5px] font-semibold ${i === 1 ? "bg-emerald-50 text-emerald-700 border border-emerald-200" : i === 2 ? "bg-orange-50 text-orange-600 border border-orange-200" : "bg-blue-50 text-blue-700 border border-blue-200"}`}>

@@ -23,10 +23,10 @@ export default function CheckInPage() {
     <div className="w-full max-w-66.5 mx-auto space-y-2">
       {/* Page header */}
       <div>
-        <h1 className="text-[13px] font-bold text-gray-900 tracking-tight">
+        <h1 className="text-[13px] font-bold text-[#162E55] tracking-tight">
           Event Check-In
         </h1>
-        <p className="text-[8px] text-gray-500 mt-0.5">
+        <p className="text-[8px] text-[#3A5A85] mt-0.5">
           Scan an attendee QR code to check them in
         </p>
       </div>

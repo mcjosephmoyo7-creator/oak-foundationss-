@@ -198,10 +198,10 @@ export default function QRScanner({ onScanStart, onError }: QRScannerProps) {
 
   return (
     <div
-      className="w-full bg-[#111927] rounded-lg overflow-hidden shadow-md"
+      className="w-full bg-[#0D1A33] rounded-lg overflow-hidden shadow-md"
       onClick={state === "idle" ? startScanner : undefined}
     >
-      <div className="relative w-full aspect-[0.9] bg-[#111927] overflow-hidden">
+      <div className="relative w-full aspect-[0.9] bg-[#0D1A33] overflow-hidden">
         <div
           ref={containerRef}
           id="qr-scanner-region"
@@ -213,13 +213,13 @@ export default function QRScanner({ onScanStart, onError }: QRScannerProps) {
           <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
             <div className="relative w-[34%] aspect-square min-w-37.5 max-w-70">
               {/* Top-left */}
-              <div className="absolute top-0 left-0 w-7 h-7 border-t border-l border-white/70 rounded-tl-md" />
+              <div className="absolute top-0 left-0 w-7 h-7 border-t border-l border-[#D6DEE8]/70 rounded-tl-md" />
               {/* Top-right */}
-              <div className="absolute top-0 right-0 w-7 h-7 border-t border-r border-white/70 rounded-tr-md" />
+              <div className="absolute top-0 right-0 w-7 h-7 border-t border-r border-[#D6DEE8]/70 rounded-tr-md" />
               {/* Bottom-left */}
-              <div className="absolute bottom-0 left-0 w-7 h-7 border-b border-l border-white/70 rounded-bl-md" />
+              <div className="absolute bottom-0 left-0 w-7 h-7 border-b border-l border-[#D6DEE8]/70 rounded-bl-md" />
               {/* Bottom-right */}
-              <div className="absolute bottom-0 right-0 w-7 h-7 border-b border-r border-white/70 rounded-br-md" />
+              <div className="absolute bottom-0 right-0 w-7 h-7 border-b border-r border-[#D6DEE8]/70 rounded-br-md" />
 
               {/* Scanning line animation */}
               {state === "scanning" && (
@@ -233,9 +233,9 @@ export default function QRScanner({ onScanStart, onError }: QRScannerProps) {
 
         {/* Requesting permission */}
         {state === "requesting" && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#0C1D36]/80">
-            <div className="w-12 h-12 border-2 border-white/20 border-t-white/80 rounded-full animate-spin mb-4" />
-            <p className="text-white/70 text-sm font-medium">
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#0D1A33]/80">
+            <div className="w-12 h-12 border-2 border-[#D6DEE8]/20 border-t-white/80 rounded-full animate-spin mb-4" />
+            <p className="text-[#EDF1F7]/70 text-sm font-medium">
               Requesting camera access...
             </p>
           </div>
@@ -243,9 +243,9 @@ export default function QRScanner({ onScanStart, onError }: QRScannerProps) {
 
         {/* Gallery image */}
         {state === "reading" && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#0C1D36]/90">
-            <div className="w-12 h-12 border-2 border-white/20 border-t-white/80 rounded-full animate-spin mb-4" />
-            <p className="text-white/70 text-sm font-medium">
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#0D1A33]/90">
+            <div className="w-12 h-12 border-2 border-[#D6DEE8]/20 border-t-white/80 rounded-full animate-spin mb-4" />
+            <p className="text-[#EDF1F7]/70 text-sm font-medium">
               Reading QR code...
             </p>
           </div>
@@ -253,7 +253,7 @@ export default function QRScanner({ onScanStart, onError }: QRScannerProps) {
 
         {/* Success state */}
         {state === "success" && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#0C1D36]/90">
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#0D1A33]/90">
             <div className="w-14 h-14 rounded-full bg-emerald-500/20 flex items-center justify-center mb-4">
               <svg
                 className="w-7 h-7 text-emerald-400"
@@ -269,7 +269,7 @@ export default function QRScanner({ onScanStart, onError }: QRScannerProps) {
                 />
               </svg>
             </div>
-            <p className="text-white/90 text-sm font-medium text-center mb-4">
+            <p className="text-[#EDF1F7]/90 text-sm font-medium text-center mb-4">
               Check-in approved! Redirecting...
             </p>
           </div>
@@ -277,7 +277,7 @@ export default function QRScanner({ onScanStart, onError }: QRScannerProps) {
 
         {/* Error state */}
         {state === "error" && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#0C1D36]/90 px-8">
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#0D1A33]/90 px-8">
             <div className="w-14 h-14 rounded-full bg-red-500/20 flex items-center justify-center mb-4">
               <svg
                 className="w-7 h-7 text-red-400"
@@ -293,13 +293,13 @@ export default function QRScanner({ onScanStart, onError }: QRScannerProps) {
                 />
               </svg>
             </div>
-            <p className="text-white/90 text-sm font-medium text-center mb-4">
+            <p className="text-[#EDF1F7]/90 text-sm font-medium text-center mb-4">
               {errorMsg}
             </p>
             <button
               type="button"
               onClick={startScanner}
-              className="px-5 py-2.5 bg-white text-[#444444] text-sm font-semibold rounded-xl hover:bg-gray-100 transition-colors cursor-pointer"
+              className="px-5 py-2.5 bg-[#F7FAFD] text-[#162E55] text-sm font-semibold rounded-xl hover:bg-[#EDF1F7] transition-colors cursor-pointer"
             >
               Try Again
             </button>
@@ -308,7 +308,7 @@ export default function QRScanner({ onScanStart, onError }: QRScannerProps) {
 
         {/* No camera */}
         {state === "no-camera" && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#0C1D36]/90 px-8">
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#0D1A33]/90 px-8">
             <div className="w-14 h-14 rounded-full bg-yellow-500/20 flex items-center justify-center mb-4">
               <svg
                 className="w-7 h-7 text-yellow-400"
@@ -324,10 +324,10 @@ export default function QRScanner({ onScanStart, onError }: QRScannerProps) {
                 />
               </svg>
             </div>
-            <p className="text-white/90 text-sm font-medium text-center mb-2">
+            <p className="text-[#EDF1F7]/90 text-sm font-medium text-center mb-2">
               {errorMsg}
             </p>
-            <p className="text-white/50 text-xs text-center">
+            <p className="text-[#EDF1F7]/50 text-xs text-center">
               Use manual code entry below
             </p>
           </div>
@@ -335,8 +335,8 @@ export default function QRScanner({ onScanStart, onError }: QRScannerProps) {
 
         {/* Last scanned code indicator */}
         {lastScan && (
-          <div className="absolute top-3 left-3 right-3 bg-black/50 backdrop-blur-sm rounded-lg px-3 py-1.5 text-center">
-            <p className="text-white text-xs font-mono truncate">
+          <div className="absolute top-3 left-3 right-3 bg-[#0D1A33]/70 backdrop-blur-sm rounded-lg px-3 py-1.5 text-center">
+            <p className="text-[#EDF1F7] text-xs font-mono truncate">
               Scanned: {lastScan}
             </p>
           </div>
@@ -348,19 +348,19 @@ export default function QRScanner({ onScanStart, onError }: QRScannerProps) {
         <div className="flex items-center gap-2">
           {(state === "scanning" || state === "idle") && (
             <>
-              <span className="w-2 h-2 rounded-full bg-white/40 animate-pulse" />
-              <p className="text-white/35 text-[7px]">
+              <span className="w-2 h-2 rounded-full bg-[#F7FAFD]/40 animate-pulse" />
+              <p className="text-[#EDF1F7]/35 text-[7px]">
                 Hold camera steady. Auto-scans in 1-2 seconds
               </p>
             </>
           )}
           {state === "requesting" && (
-            <p className="text-white/40 text-[10px]">
+            <p className="text-[#EDF1F7]/40 text-[10px]">
               Waiting for camera permission...
             </p>
           )}
           {(state === "error" || state === "no-camera") && (
-            <p className="text-white/40 text-[10px]">
+            <p className="text-[#EDF1F7]/40 text-[10px]">
               Use manual code entry below
             </p>
           )}
@@ -384,7 +384,7 @@ export default function QRScanner({ onScanStart, onError }: QRScannerProps) {
           event.stopPropagation();
           galleryInputRef.current?.click();
         }}
-        className="w-full mt-3 flex items-center justify-center gap-1.5 px-3 py-2 text-[10px] font-medium text-white/75 hover:text-white transition-colors cursor-pointer"
+        className="w-full mt-3 flex items-center justify-center gap-1.5 px-3 py-2 text-[10px] font-medium text-[#EDF1F7]/75 hover:text-[#EDF1F7] transition-colors cursor-pointer"
       >
         <svg
           className="w-3.5 h-3.5"

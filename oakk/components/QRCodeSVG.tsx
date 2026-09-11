@@ -17,8 +17,8 @@ export default function QRCodeSVG({
   value,
   size = 200,
   level = "M",
-  fgColor = "#444444",
-  bgColor = "#FFFFFF",
+  fgColor = "#162E55",
+  bgColor = "#F7FAFD",
   className = "",
   title = "QR Code",
 }: QRCodeProps) {
@@ -35,7 +35,7 @@ export default function QRCodeSVG({
     return (
       <div
         style={{ width: size, height: size }}
-        className="flex items-center justify-center bg-gray-100 text-gray-400 text-xs rounded"
+        className="flex items-center justify-center bg-[#EDF1F7] text-[#5C7AA2] text-xs rounded"
       >
         QR Error
       </div>

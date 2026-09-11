@@ -54,15 +54,15 @@ export default function Sidebar() {
             compact
               ? "shrink-0 px-2.5 py-1.5 rounded-full text-[9px] " +
                 (active
-                  ? "bg-[#444444] text-white shadow-sm"
-                  : "bg-gray-100 text-gray-600 hover:text-gray-900 hover:bg-gray-200")
+                  ? "bg-[#162E55] text-[#EDF1F7] shadow-sm"
+                  : "bg-[#EDF1F7] text-[#3A5A85] hover:text-[#162E55] hover:bg-[#D6DEE8]")
                   : "px-2 py-2 rounded-md text-[7px] " +
                 (active
-                  ? "bg-[#444444] text-white shadow-sm"
-                  : "text-gray-600 hover:text-gray-900 hover:bg-gray-100")
+                  ? "bg-[#162E55] text-[#EDF1F7] shadow-sm"
+                  : "text-[#3A5A85] hover:text-[#162E55] hover:bg-[#EDF1F7]")
           }`}
         >
-          <span className={active ? "text-white" : "text-gray-400"}>
+          <span className={active ? "text-[#EDF1F7]" : "text-[#5C7AA2]"}>
             <NavIcon name={item.icon} />
           </span>
           {item.label}
@@ -73,11 +73,11 @@ export default function Sidebar() {
   return (
     <>
       {/* Mobile: always-visible top navigation bar */}
-      <div className="md:hidden fixed top-0 inset-x-0 z-40 bg-white border-b border-gray-200">
+      <div className="md:hidden fixed top-0 inset-x-0 z-40 bg-[#F7FAFD] border-b border-[#D6DEE8]">
         <div className="flex items-center gap-2 px-3 h-10">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/oak-logo.svg" alt="OAK Foundation" className="h-6 w-auto" />
-          <span className="text-[7px] font-semibold text-gray-900 leading-tight uppercase tracking-wide truncate">
+          <span className="text-[7px] font-semibold text-[#162E55] leading-tight uppercase tracking-wide truncate">
             Partner Convening 2026
           </span>
         </div>
@@ -90,7 +90,7 @@ export default function Sidebar() {
       <div className="hidden md:flex fixed top-3 left-3 z-50 items-center gap-2">
         <Link
           href="/register"
-          className="flex items-center gap-1.5 rounded-lg bg-[#444444] px-3 py-1.5 text-xs font-semibold text-white shadow-md transition-colors hover:bg-[#333333]"
+          className="flex items-center gap-1.5 rounded-lg bg-[#162E55] px-3 py-1.5 text-xs font-semibold text-[#EDF1F7] shadow-md transition-colors hover:bg-[#112344]"
         >
           <NavIcon name="register" />
           Register

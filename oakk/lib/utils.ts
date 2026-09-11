@@ -21,8 +21,8 @@ export function drawQRToContext(
 ): boolean {
   const {
     level = "H",
-    fgColor = "#444444",
-    bgColor = "#FFFFFF",
+    fgColor = "#162E55",
+    bgColor = "#F7FAFD",
     quietZoneModules = 4,
   } = opts;
 

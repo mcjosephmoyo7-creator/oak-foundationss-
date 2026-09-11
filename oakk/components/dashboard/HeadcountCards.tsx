@@ -42,7 +42,7 @@ export default function HeadcountCards({ refreshKey = 0 }: HeadcountCardsProps) 
   }, [fetchHeadcount, refreshKey]);
 
   const cards = [
-    { label: "Total Registered", value: data.totalRegistered, color: "text-[#444444]", bg: "bg-blue-50", border: "border-blue-100" },
+    { label: "Total Registered", value: data.totalRegistered, color: "text-[#162E55]", bg: "bg-blue-50", border: "border-blue-100" },
     { label: "Checked In Today", value: data.checkedInToday, color: "text-emerald-700", bg: "bg-emerald-50", border: "border-emerald-100" },
     { label: "Remaining", value: data.remaining, color: "text-amber-700", bg: "bg-amber-50", border: "border-amber-100" },
   ];
@@ -57,7 +57,7 @@ export default function HeadcountCards({ refreshKey = 0 }: HeadcountCardsProps) 
           <p className={`text-2xl sm:text-3xl font-extrabold ${card.color} tabular-nums`}>
             {card.value}
           </p>
-          <p className="text-[10px] sm:text-[11px] font-semibold text-gray-600 uppercase tracking-wider mt-1">
+          <p className="text-[10px] sm:text-[11px] font-semibold text-[#3A5A85] uppercase tracking-wider mt-1">
             {card.label}
           </p>
         </div>
