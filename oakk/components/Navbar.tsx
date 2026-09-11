@@ -13,9 +13,7 @@ export default function Navbar({ activeTab = "register", onTabChange }: NavbarPr
       <div className="max-w-4xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
         {/* Brand & Event Title */}
         <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 rounded-lg bg-[#162E55] flex items-center justify-center text-[#EDF1F7] font-bold text-sm tracking-wider">
-            OAK
-          </div>
+          <img src="/oak-logo.svg" alt="OAK Foundation" className="h-8 w-auto" />
           <div>
             <h1 className="text-sm font-semibold text-[#162E55] leading-tight">
               Partner Convening 2026

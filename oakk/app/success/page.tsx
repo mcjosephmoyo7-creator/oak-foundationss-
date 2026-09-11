@@ -1,6 +1,6 @@
 "use client";
 
-import React, { Suspense, useEffect, useState } from "react";
+import React, { Suspense, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import { EVENT_DETAILS, AttendeeRegistration } from "../../lib/types";
 import { getStoredAttendees } from "../../lib/utils";
@@ -9,13 +9,10 @@ import QRCodeSVG from "../../components/QRCodeSVG";
 function SuccessContent() {
   const searchParams = useSearchParams();
   const code = searchParams.get("code");
-  const [attendee, setAttendee] = useState<AttendeeRegistration | null>(null);
-
-  useEffect(() => {
-    if (!code) return;
+  const attendee = useMemo<AttendeeRegistration | null>(() => {
+    if (!code) return null;
     const all = getStoredAttendees();
-    const found = all.find((a) => a.passCode === code) ?? null;
-    setAttendee(found);
+    return all.find((a) => a.passCode === code) ?? null;
   }, [code]);
 
   if (!code) {

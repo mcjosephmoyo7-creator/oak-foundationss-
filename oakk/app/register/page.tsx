@@ -41,7 +41,7 @@ export default function RegistrationPage() {
           ) : (
             <>
               <section className="rounded-2xl bg-[#162E55] px-5 py-6 text-[#EDF1F7] shadow-sm sm:px-7 sm:py-7">
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-100">OAK Foundation</p>
+                <img src="/oak-logo.svg" alt="OAK Foundation" className="h-6 w-auto brightness-0 invert" />
                 <h1 className="mt-2 text-2xl font-bold leading-tight sm:text-3xl">Partner Convening 2026</h1>
                 <p className="mt-2 text-sm text-blue-100">Harare, Zimbabwe · 9–11 March 2026</p>
               </section>

@@ -19,9 +19,7 @@ export default function DigitalNametag({ attendee }: DigitalNametagProps) {
       {/* Header Band */}
       <div className="bg-[#162E55] text-[#EDF1F7] py-4 px-6">
         <div className="flex items-center justify-center gap-2 mb-1">
-          <div className="w-6 h-6 rounded bg-[#F7FAFD] text-[#162E55] font-black text-xs flex items-center justify-center">
-            OAK
-          </div>
+          <img src="/oak-logo.svg" alt="OAK Foundation" className="h-6 w-auto brightness-0 invert" />
           <span className="text-xs font-bold tracking-widest uppercase text-[#DCE4EE]">
             {EVENT_DETAILS.organization}
           </span>
