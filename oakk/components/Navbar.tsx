@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Image from "next/image";
 
 interface NavbarProps {
   activeTab?: string;
@@ -13,7 +14,7 @@ export default function Navbar({ activeTab = "register", onTabChange }: NavbarPr
       <div className="max-w-4xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
         {/* Brand & Event Title */}
         <div className="flex items-center space-x-3">
-          <img src="/oak-logo.svg" alt="OAK Foundation" className="h-8 w-auto" />
+          <Image src="/oak-logo.svg" alt="OAK Foundation" width={110} height={32} className="h-8 w-auto" priority />
           <div>
             <h1 className="text-sm font-semibold text-[#162E55] leading-tight">
               Partner Convening 2026

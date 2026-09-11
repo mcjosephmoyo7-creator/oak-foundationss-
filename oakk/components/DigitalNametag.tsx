@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Image from "next/image";
 import { AttendeeRegistration, EVENT_DETAILS } from "../lib/types";
 import QRCodeSVG from "./QRCodeSVG";
 
@@ -19,7 +20,7 @@ export default function DigitalNametag({ attendee }: DigitalNametagProps) {
       {/* Header Band */}
       <div className="bg-[#162E55] text-[#EDF1F7] py-4 px-6">
         <div className="flex items-center justify-center gap-2 mb-1">
-          <img src="/oak-logo.svg" alt="OAK Foundation" className="h-6 w-auto brightness-0 invert" />
+          <Image src="/oak-logo.svg" alt="OAK Foundation" width={82} height={24} className="h-6 w-auto brightness-0 invert" />
           <span className="text-xs font-bold tracking-widest uppercase text-[#DCE4EE]">
             {EVENT_DETAILS.organization}
           </span>
