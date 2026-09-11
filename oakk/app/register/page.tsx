@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import Sidebar from "../../components/dashboard/Sidebar";
 import AttendeePass from "../../components/AttendeePass";
 import RegistrationForm from "../../components/RegistrationForm";
+import RegistrationSuccessPopup from "../../components/RegistrationSuccessPopup";
 import type { AttendeeRegistration } from "../../lib/types";
 
 const STATS = [
@@ -14,17 +15,32 @@ const STATS = [
 
 export default function RegistrationPage() {
   const [attendee, setAttendee] = useState<AttendeeRegistration | null>(null);
+  const [popupAttendee, setPopupAttendee] = useState<AttendeeRegistration | null>(null);
+
+  const handleSuccess = (registered: AttendeeRegistration) => {
+    setPopupAttendee(registered);
+  };
+
+  const handleViewPass = () => {
+    if (popupAttendee) setAttendee(popupAttendee);
+    setPopupAttendee(null);
+  };
+
+  const handleRegisterAnother = () => {
+    setAttendee(null);
+    setPopupAttendee(null);
+  };
 
   return (
     <div className="min-h-screen bg-[#f4f6f9]">
       <Sidebar />
-      <main className="min-h-screen px-4 pb-10 pt-16 sm:ml-29 sm:px-6 sm:pt-8 lg:px-10 lg:py-10">
+      <main className="min-h-screen px-4 pb-10 pt-20 sm:px-6 sm:pt-8 lg:px-10 lg:py-10">
         <div className="mx-auto w-full max-w-3xl">
           {attendee ? (
-            <AttendeePass attendee={attendee} onRegisterAnother={() => setAttendee(null)} />
+            <AttendeePass attendee={attendee} onRegisterAnother={handleRegisterAnother} />
           ) : (
             <>
-              <section className="rounded-2xl bg-[#203b68] px-5 py-6 text-white shadow-sm sm:px-7 sm:py-7">
+              <section className="rounded-2xl bg-[#444444] px-5 py-6 text-white shadow-sm sm:px-7 sm:py-7">
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-100">OAK Foundation</p>
                 <h1 className="mt-2 text-2xl font-bold leading-tight sm:text-3xl">Partner Convening 2026</h1>
                 <p className="mt-2 text-sm text-blue-100">Harare, Zimbabwe · 9–11 March 2026</p>
@@ -40,12 +56,20 @@ export default function RegistrationPage() {
               </section>
 
               <div className="mt-4">
-                <RegistrationForm onSuccess={setAttendee} />
+                <RegistrationForm onSuccess={handleSuccess} />
               </div>
             </>
           )}
         </div>
       </main>
+
+      {popupAttendee && (
+        <RegistrationSuccessPopup
+          attendee={popupAttendee}
+          onViewPass={handleViewPass}
+          onRegisterAnother={handleRegisterAnother}
+        />
+      )}
     </div>
   );
 }

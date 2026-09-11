@@ -13,7 +13,7 @@ export default function Navbar({ activeTab = "register", onTabChange }: NavbarPr
       <div className="max-w-4xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
         {/* Brand & Event Title */}
         <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 rounded-lg bg-[#0F223D] flex items-center justify-center text-white font-bold text-sm tracking-wider">
+          <div className="w-8 h-8 rounded-lg bg-[#444444] flex items-center justify-center text-white font-bold text-sm tracking-wider">
             OAK
           </div>
           <div>
@@ -33,7 +33,7 @@ export default function Navbar({ activeTab = "register", onTabChange }: NavbarPr
             onClick={() => onTabChange?.("register")}
             className={`px-3 py-1.5 rounded-md text-xs sm:text-sm font-medium transition-colors ${
               activeTab === "register"
-                ? "bg-[#0F223D] text-white"
+                ? "bg-[#444444] text-white"
                 : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
             }`}
           >
@@ -44,7 +44,7 @@ export default function Navbar({ activeTab = "register", onTabChange }: NavbarPr
             onClick={() => onTabChange?.("programme")}
             className={`px-3 py-1.5 rounded-md text-xs sm:text-sm font-medium transition-colors ${
               activeTab === "programme"
-                ? "bg-[#0F223D] text-white"
+                ? "bg-[#444444] text-white"
                 : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
             }`}
           >
@@ -55,7 +55,7 @@ export default function Navbar({ activeTab = "register", onTabChange }: NavbarPr
             onClick={() => onTabChange?.("partners")}
             className={`px-3 py-1.5 rounded-md text-xs sm:text-sm font-medium transition-colors ${
               activeTab === "partners"
-                ? "bg-[#0F223D] text-white"
+                ? "bg-[#444444] text-white"
                 : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
             }`}
           >

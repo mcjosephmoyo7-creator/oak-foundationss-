@@ -52,7 +52,7 @@ export default function AttendeesPage() {
     name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
 
   const avatarColors = [
-    "bg-[#0F223D]", "bg-blue-600", "bg-indigo-600", "bg-violet-600",
+    "bg-[#444444]", "bg-blue-600", "bg-indigo-600", "bg-violet-600",
     "bg-teal-600", "bg-emerald-600", "bg-cyan-600",
   ];
 
@@ -73,7 +73,7 @@ export default function AttendeesPage() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search by name, email, or QR code..."
-          className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-300 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-[#0F223D] transition-all bg-white"
+          className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-300 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-[#444444] transition-all bg-white"
         />
       </div>
 
@@ -96,7 +96,7 @@ export default function AttendeesPage() {
               {loading && (
                 <tr>
                   <td colSpan={6} className="px-5 py-12 text-center">
-                    <div className="w-6 h-6 border-2 border-gray-300 border-t-[#0F223D] rounded-full animate-spin mx-auto" />
+                    <div className="w-6 h-6 border-2 border-gray-300 border-t-[#444444] rounded-full animate-spin mx-auto" />
                   </td>
                 </tr>
               )}
@@ -149,7 +149,7 @@ export default function AttendeesPage() {
         <div className="md:hidden divide-y divide-gray-50">
           {loading && (
             <div className="px-5 py-12 text-center">
-              <div className="w-6 h-6 border-2 border-gray-300 border-t-[#0F223D] rounded-full animate-spin mx-auto" />
+              <div className="w-6 h-6 border-2 border-gray-300 border-t-[#444444] rounded-full animate-spin mx-auto" />
             </div>
           )}
           {!loading && attendees.length === 0 && (

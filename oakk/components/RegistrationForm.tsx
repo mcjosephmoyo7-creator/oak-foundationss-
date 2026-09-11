@@ -6,7 +6,12 @@ import {
   FormErrors,
   ROLE_OPTIONS,
 } from "../lib/types";
-import { supabase } from "../lib/supabase";
+import {
+  FunctionsFetchError,
+  FunctionsHttpError,
+  FunctionsRelayError,
+} from "@supabase/supabase-js";
+import { isSupabaseConfigured, supabase } from "../lib/supabase";
 import { generatePassCode, saveAttendeeToStorage } from "../lib/utils";
 
 interface RegistrationFormProps {
@@ -107,6 +112,12 @@ export default function RegistrationForm({ onSuccess }: RegistrationFormProps) {
     setSubmitError(null);
 
     try {
+      if (!isSupabaseConfigured) {
+        throw new Error(
+          "Registration is temporarily unavailable because the event service is not configured. Please contact the event team."
+        );
+      }
+
       const { data, error } = await supabase.functions.invoke(
         "register-attendee",
         {
@@ -125,6 +136,78 @@ export default function RegistrationForm({ onSuccess }: RegistrationFormProps) {
       );
 
       if (error) {
+        if (error instanceof FunctionsHttpError) {
+          // Extract the real error message sent by the edge function
+          let errorBody: Record<string, unknown> | null = null;
+          try {
+            errorBody = (await error.context.json()) as Record<
+              string,
+              unknown
+            >;
+          } catch {
+            errorBody = null;
+          }
+
+          // Returning attendee — recover their existing pass and complete the flow
+          if (errorBody?.already_registered && errorBody?.attendee) {
+            const existing = errorBody.attendee as {
+              id?: string;
+              full_name?: string;
+              email?: string | null;
+              phone?: string | null;
+              qr_code?: string;
+              organization?: string | null;
+              role?: string | null;
+              created_at?: string;
+            };
+
+            const nameParts = (existing.full_name || "")
+              .split(" ")
+              .filter(Boolean);
+            const existingAttendee: AttendeeRegistration = {
+              id:
+                existing.id ||
+                "att_" +
+                  Date.now() +
+                  "_" +
+                  Math.random().toString(36).substring(2, 7),
+              passCode: existing.qr_code || generatePassCode(),
+              firstName: nameParts[0] || formData.firstName.trim(),
+              lastName:
+                nameParts.slice(1).join(" ") || formData.lastName.trim(),
+              organisation:
+                existing.organization || formData.organisation.trim(),
+              role: existing.role || formData.role,
+              email: (existing.email || formData.email.trim()).toLowerCase(),
+              phone: existing.phone || formData.phone.trim() || undefined,
+              consentAgreed: formData.consentAgreed,
+              registeredAt: existing.created_at || new Date().toISOString(),
+            };
+
+            saveAttendeeToStorage(existingAttendee);
+            onSuccess(existingAttendee);
+            return;
+          }
+
+          throw new Error(
+            String(
+              errorBody?.error || "Registration failed. Please try again."
+            )
+          );
+        }
+
+        if (error instanceof FunctionsFetchError) {
+          throw new Error(
+            "We could not reach the registration service. Please check your connection and try again."
+          );
+        }
+
+        if (error instanceof FunctionsRelayError) {
+          throw new Error(
+            "The registration service is temporarily unavailable. Please try again shortly."
+          );
+        }
+
         throw error;
       }
 
@@ -161,10 +244,10 @@ export default function RegistrationForm({ onSuccess }: RegistrationFormProps) {
       saveAttendeeToStorage(newAttendee);
       onSuccess(newAttendee);
     } catch (err) {
-      const message =
-        err instanceof Error
-          ? err.message
-          : "Registration failed. Please try again.";
+      const rawMessage = err instanceof Error ? err.message : "";
+      const message = /fetch|network|failed to send/i.test(rawMessage)
+        ? "We could not reach the registration service. Please check your connection and try again."
+        : rawMessage || "Registration failed. Please try again.";
       setSubmitError(message);
     } finally {
       setIsSubmitting(false);
@@ -184,7 +267,7 @@ export default function RegistrationForm({ onSuccess }: RegistrationFormProps) {
 
       <form onSubmit={handleSubmit} noValidate className="space-y-5">
         {submitError && (
-          <div className="p-3.5 rounded-xl border border-red-200 bg-red-50 text-red-800 text-sm font-medium flex items-start gap-2">
+          <div role="alert" aria-live="polite" className="p-3.5 rounded-xl border border-red-200 bg-red-50 text-red-800 text-sm font-medium flex items-start gap-2">
             <span>⚠</span>
             <span>{submitError}</span>
           </div>
@@ -209,7 +292,7 @@ export default function RegistrationForm({ onSuccess }: RegistrationFormProps) {
               className={`w-full px-3.5 py-2.5 rounded-lg border text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 transition-all ${
                 errors.firstName
                   ? "border-red-400 focus:ring-red-200 bg-red-50/20"
-                  : "border-gray-300 focus:ring-blue-100 focus:border-[#0F223D]"
+                  : "border-gray-300 focus:ring-blue-100 focus:border-[#444444]"
               }`}
             />
             {errors.firstName && (
@@ -236,7 +319,7 @@ export default function RegistrationForm({ onSuccess }: RegistrationFormProps) {
               className={`w-full px-3.5 py-2.5 rounded-lg border text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 transition-all ${
                 errors.lastName
                   ? "border-red-400 focus:ring-red-200 bg-red-50/20"
-                  : "border-gray-300 focus:ring-blue-100 focus:border-[#0F223D]"
+                  : "border-gray-300 focus:ring-blue-100 focus:border-[#444444]"
               }`}
             />
             {errors.lastName && (
@@ -265,7 +348,7 @@ export default function RegistrationForm({ onSuccess }: RegistrationFormProps) {
             className={`w-full px-3.5 py-2.5 rounded-lg border text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 transition-all ${
               errors.organisation
                 ? "border-red-400 focus:ring-red-200 bg-red-50/20"
-                : "border-gray-300 focus:ring-blue-100 focus:border-[#0F223D]"
+                : "border-gray-300 focus:ring-blue-100 focus:border-[#444444]"
             }`}
           />
           {errors.organisation && (
@@ -293,7 +376,7 @@ export default function RegistrationForm({ onSuccess }: RegistrationFormProps) {
             value={formData.subPartner}
             onChange={handleChange}
             placeholder="e.g. Climate Justice / Youth Tech"
-            className="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-[#0F223D] transition-all"
+            className="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-[#444444] transition-all"
           />
         </div>
 
@@ -314,7 +397,7 @@ export default function RegistrationForm({ onSuccess }: RegistrationFormProps) {
               className={`w-full px-3.5 py-2.5 rounded-lg border text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 transition-all appearance-none cursor-pointer ${
                 errors.role
                   ? "border-red-400 focus:ring-red-200 bg-red-50/20"
-                  : "border-gray-300 focus:ring-blue-100 focus:border-[#0F223D]"
+                  : "border-gray-300 focus:ring-blue-100 focus:border-[#444444]"
               } ${!formData.role ? "text-gray-400" : "text-gray-900"}`}
             >
               <option value="" disabled>
@@ -358,7 +441,7 @@ export default function RegistrationForm({ onSuccess }: RegistrationFormProps) {
               className={`w-full px-3.5 py-2.5 rounded-lg border text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 transition-all ${
                 errors.email
                   ? "border-red-400 focus:ring-red-200 bg-red-50/20"
-                  : "border-gray-300 focus:ring-blue-100 focus:border-[#0F223D]"
+                  : "border-gray-300 focus:ring-blue-100 focus:border-[#444444]"
               }`}
             />
             {errors.email && (
@@ -385,7 +468,7 @@ export default function RegistrationForm({ onSuccess }: RegistrationFormProps) {
               value={formData.phone}
               onChange={handleChange}
               placeholder="+263 xx xxx xxxx / +41 xx"
-              className="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-[#0F223D] transition-all"
+              className="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-[#444444] transition-all"
             />
           </div>
         </div>
@@ -411,7 +494,7 @@ export default function RegistrationForm({ onSuccess }: RegistrationFormProps) {
               value={formData.dietary}
               onChange={handleChange}
               placeholder="e.g. Vegetarian, Halal, Gluten free"
-              className="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-[#0F223D] transition-all"
+              className="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-[#444444] transition-all"
             />
           </div>
 
@@ -430,7 +513,7 @@ export default function RegistrationForm({ onSuccess }: RegistrationFormProps) {
               value={formData.accessibility}
               onChange={handleChange}
               placeholder="e.g. Wheelchair access, hearing loop"
-              className="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-[#0F223D] transition-all"
+              className="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-[#444444] transition-all"
             />
           </div>
 
@@ -449,7 +532,7 @@ export default function RegistrationForm({ onSuccess }: RegistrationFormProps) {
               value={formData.travel}
               onChange={handleChange}
               placeholder="e.g. Flight from London, hotel needed"
-              className="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-[#0F223D] transition-all"
+              className="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-[#444444] transition-all"
             />
           </div>
         </div>
@@ -469,7 +552,7 @@ export default function RegistrationForm({ onSuccess }: RegistrationFormProps) {
                 name="consentAgreed"
                 checked={formData.consentAgreed}
                 onChange={handleChange}
-                className="mt-0.5 h-4 w-4 rounded border-gray-300 text-[#0F223D] focus:ring-[#0F223D] transition-colors cursor-pointer"
+                className="mt-0.5 h-4 w-4 rounded border-gray-300 text-[#444444] focus:ring-[#444444] transition-colors cursor-pointer"
               />
               <span className="text-xs text-gray-700 leading-relaxed select-none">
                 I agree to <span className="font-semibold text-gray-900">OAK Foundation&apos;s privacy policy</span> and consent to my registration data being used for event coordination and entrance verification.
@@ -488,7 +571,7 @@ export default function RegistrationForm({ onSuccess }: RegistrationFormProps) {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full py-3.5 px-4 bg-[#0F223D] hover:bg-[#1A365D] active:bg-[#0A1628] text-white text-sm sm:text-base font-semibold rounded-xl shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-75 disabled:cursor-not-allowed"
+            className="w-full py-3.5 px-4 bg-[#444444] hover:bg-[#333333] active:bg-[#222222] text-white text-sm sm:text-base font-semibold rounded-xl shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-75 disabled:cursor-not-allowed"
           >
             {isSubmitting ? (
               <>

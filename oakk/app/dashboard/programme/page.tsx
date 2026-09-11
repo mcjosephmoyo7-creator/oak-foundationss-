@@ -63,6 +63,38 @@ const toneStyles = {
   orange: "bg-[#fff0e6] text-[#d86b25]",
 };
 
+const notes = [
+  { initials: "HM", name: "Helena Murewa", role: "OAK Foundation", time: "Today, 09:25", text: "The rights-based approaches session surfaced strong demand for a shared learning platform. OAK will follow up with MENA Rights Group on joint programming opportunities in the MENA region." },
+  { initials: "JO", name: "James Okafor", role: "Africa Civil Alliance", time: "Day 1, 10:10", text: "Digital rights in authoritarian contexts was a recurring thread across the opening sessions. Partnership opportunities with Digital Frontiers, Access Now, and others are emerging." },
+  { initials: "AD", name: "Amina Diallo", role: "Global Evaluation Network", time: "Day 1, 11:40", text: "Strategic communications workshop highly rated. Participants asked for more practical tools and examples for organisations working with smaller teams." },
+  { initials: "PC", name: "Paul Maseko", role: "Pamoja Fund", time: "Day 1, 14:00", text: "Feedback showed strong preference for practical tools and peer learning over long-form policy and better share learning. Key ask: OAK to publish future case studies alongside success stories." },
+];
+
+const gallery = [
+  { src: "https://images.unsplash.com/photo-1505373877841-8d25f7d46678?auto=format&fit=crop&w=700&q=80", alt: "Audience gathered in a conference room" },
+  { src: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=700&q=80", alt: "Microphone ready for a speaker" },
+  { src: "https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&w=700&q=80", alt: "Partners collaborating around a laptop" },
+  { src: "https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=700&q=80", alt: "Bright meeting room prepared for a session" },
+  { src: "https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&w=700&q=80", alt: "Team of partners talking together" },
+  { src: "https://images.unsplash.com/photo-1551836022-d5d88e9218df?auto=format&fit=crop&w=700&q=80", alt: "Workshop participant taking notes" },
+];
+
+const takeaways = [
+  "Philanthropy needs to accept 10+ year time horizons for systemic change",
+  "Shared learning infrastructure is the most requested resource across the portfolio",
+  "Digital rights must be integrated into all programme areas, not siloed",
+  "Rights-based framing significantly improves grantmaking effectiveness",
+  "Peer exchange is rated most valuable when expert-led sessions are practical",
+];
+
+const resources = [
+  ["Opening Plenary Presentation", "PDF · 12.8 MB · Day 1"],
+  ["OAK Portfolio Overview 2024–26", "PDF · 1.8 MB · Day 2"],
+  ["Action Planning Workbook", "DOCX · 3.6 MB · Day 2"],
+  ["Partner Contact Directory", "XLSX · 0.4 MB · All days"],
+  ["Photo Gallery (High Res)", "ZIP · 48.2 MB · All days"],
+];
+
 export default function ProgrammePage() {
   const [selectedDay, setSelectedDay] = useState(0);
 
@@ -127,6 +159,73 @@ export default function ProgrammePage() {
           </article>
         ))}
       </div>
+
+      <section className="mt-4" aria-labelledby="session-notes-heading">
+        <div className="mb-2 flex items-center justify-between">
+          <h2 id="session-notes-heading" className="text-[8px] font-extrabold text-[#17243a]">◉ Session Notes</h2>
+          <button type="button" className="rounded-md bg-[#19345b] px-2 py-1.5 text-[6px] font-semibold text-white">+ Add Note</button>
+        </div>
+        <div className="space-y-1.5">
+          {notes.map((note) => (
+            <article key={note.name} className="rounded-xl bg-white px-2.5 py-2 shadow-[0_3px_10px_rgba(31,48,77,0.09)]">
+              <div className="flex items-center gap-1.5">
+                <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-[#19345b] text-[5px] font-bold text-white">{note.initials}</span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-[6px] font-bold text-[#17243a]">{note.name}</p>
+                  <p className="truncate text-[5px] text-[#8c97a8]">{note.role}</p>
+                </div>
+                <span className="rounded-full bg-[#f1f4f8] px-1.5 py-1 text-[5px] text-[#8c97a8]">{note.time}</span>
+              </div>
+              <p className="mt-1.5 text-[6px] leading-2.5 text-[#405069]">{note.text}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="mt-4" aria-labelledby="photo-gallery-heading">
+        <div className="mb-2 flex items-center justify-between">
+          <h2 id="photo-gallery-heading" className="text-[8px] font-extrabold text-[#17243a]">▧ Photo Gallery</h2>
+          <span className="text-[6px] text-[#8c97a8]">{gallery.length} photos</span>
+        </div>
+        <div className="grid grid-cols-2 gap-1.5">
+          {gallery.map((photo) => (
+            <div key={photo.src} className="aspect-[1.35] overflow-hidden rounded-lg bg-[#e9edf2]">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={photo.src} alt={photo.alt} className="h-full w-full object-cover transition-transform duration-300 hover:scale-105" />
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="mt-4" aria-labelledby="takeaways-heading">
+        <h2 id="takeaways-heading" className="mb-2 text-[8px] font-extrabold text-[#17243a]">♧ Key Takeaways</h2>
+        <div className="rounded-xl bg-white px-2.5 py-2.5 shadow-[0_3px_10px_rgba(31,48,77,0.09)]">
+          <ul className="space-y-1.5">
+            {takeaways.map((takeaway) => (
+              <li key={takeaway} className="flex items-start gap-1.5 text-[6px] leading-2.5 text-[#405069]">
+                <span className="mt-0.5 flex h-2 w-2 shrink-0 items-center justify-center rounded-full bg-[#19345b] text-[4px] text-white">✓</span>
+                {takeaway}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+
+      <section className="mt-4" aria-labelledby="resources-heading">
+        <h2 id="resources-heading" className="mb-2 text-[8px] font-extrabold text-[#17243a]">♧ Resources</h2>
+        <div className="space-y-1.5">
+          {resources.map(([name, detail]) => (
+            <button key={name} type="button" className="flex w-full items-center gap-2 rounded-xl bg-white px-2.5 py-2 text-left shadow-[0_3px_10px_rgba(31,48,77,0.09)] transition-colors hover:bg-[#f8fafc]">
+              <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-md bg-[#eef2f7] text-[7px] text-[#718097]">▧</span>
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-[6px] font-bold text-[#405069]">{name}</span>
+                <span className="mt-0.5 block truncate text-[5px] text-[#9aa5b5]">{detail}</span>
+              </span>
+              <span className="text-[8px] text-[#9aa5b5]">⌄</span>
+            </button>
+          ))}
+        </div>
+      </section>
     </div>
   );
 }

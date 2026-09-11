@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { AttendeeRegistration, EVENT_DETAILS } from "../lib/types";
+import { drawQRToContext, getPassQRUrl } from "../lib/utils";
 import QRCodeSVG from "./QRCodeSVG";
 
 interface AttendeePassProps {
@@ -16,6 +17,7 @@ export default function AttendeePass({
 }: AttendeePassProps) {
   const [isDownloading, setIsDownloading] = useState(false);
   const router = useRouter();
+  const qrUrl = getPassQRUrl(attendee.passCode);
 
   const handleDownloadPass = () => {
     setIsDownloading(true);
@@ -26,7 +28,7 @@ export default function AttendeePass({
       const ctx = canvas.getContext("2d");
       if (!ctx) return;
 
-      const scale = 2; // retina quality
+      const scale = 3; // retina quality; higher = crisper QR output
       const width = 480 * scale;
       const height = 640 * scale;
 
@@ -38,7 +40,7 @@ export default function AttendeePass({
       ctx.fillRect(0, 0, width, height);
 
       // Card Header
-      ctx.fillStyle = "#0F223D";
+      ctx.fillStyle = "#444444";
       ctx.fillRect(0, 0, width, 140 * scale);
 
       // Header Text
@@ -67,42 +69,32 @@ export default function AttendeePass({
       // Pass Code Box
       ctx.fillStyle = "#EEF2F6";
       ctx.fillRect(width / 2 - 130 * scale, 250 * scale, 260 * scale, 36 * scale);
-      ctx.fillStyle = "#0F223D";
+      ctx.fillStyle = "#444444";
       ctx.font = `bold ${15 * scale}px monospace`;
       ctx.fillText(attendee.passCode, width / 2, 273 * scale);
 
-      // Convert SVG QR to Image onto Canvas
-      const svgElement = document.querySelector("#attendee-qr-code svg");
-      if (svgElement) {
-        const svgString = new XMLSerializer().serializeToString(svgElement);
-        const img = new Image();
-        const svgBlob = new Blob([svgString], { type: "image/svg+xml;charset=utf-8" });
-        const url = URL.createObjectURL(svgBlob);
+      // Draw QR code directly onto the canvas (crisp, high-res, level H
+      // error correction) so the downloaded pass scans reliably
+      const qrSize = 220 * scale;
+      const qrX = width / 2 - qrSize / 2;
+      const qrY = 310 * scale;
 
-        img.onload = () => {
-          const qrSize = 220 * scale;
-          ctx.fillStyle = "#FFFFFF";
-          ctx.fillRect(width / 2 - qrSize / 2 - 12 * scale, 310 * scale - 12 * scale, qrSize + 24 * scale, qrSize + 24 * scale);
-          ctx.drawImage(img, width / 2 - qrSize / 2, 310 * scale, qrSize, qrSize);
-          URL.revokeObjectURL(url);
+      ctx.fillStyle = "#FFFFFF";
+      ctx.fillRect(qrX - 12 * scale, qrY - 12 * scale, qrSize + 24 * scale, qrSize + 24 * scale);
+      drawQRToContext(ctx, qrUrl, qrX, qrY, qrSize, { level: "H", fgColor: "#444444" });
 
-          // Footer Notice
-          ctx.fillStyle = "#6B7280";
-          ctx.font = `${12 * scale}px sans-serif`;
-          ctx.fillText("Present this QR pass at event entrance for check-in", width / 2, 580 * scale);
-          ctx.fillText("OAK Foundation Partner Gathering 2026", width / 2, 605 * scale);
+      // Footer Notice
+      ctx.fillStyle = "#6B7280";
+      ctx.font = `${12 * scale}px sans-serif`;
+      ctx.fillText("Present this QR pass at event entrance for check-in", width / 2, 580 * scale);
+      ctx.fillText("OAK Foundation Partner Gathering 2026", width / 2, 605 * scale);
 
-          // Download Trigger
-          const link = document.createElement("a");
-          link.download = `OAK_Pass_${attendee.firstName}_${attendee.lastName}_${attendee.passCode}.png`;
-          link.href = canvas.toDataURL("image/png");
-          link.click();
-          setIsDownloading(false);
-        };
-        img.src = url;
-      } else {
-        setIsDownloading(false);
-      }
+      // Download Trigger
+      const link = document.createElement("a");
+      link.download = `OAK_Pass_${attendee.firstName}_${attendee.lastName}_${attendee.passCode}.png`;
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+      setIsDownloading(false);
     } catch (err) {
       console.error("Pass generation error:", err);
       setIsDownloading(false);
@@ -112,7 +104,7 @@ export default function AttendeePass({
   return (
     <div className="w-full space-y-6">
       {/* Top Banner: Registration Complete */}
-      <div className="relative overflow-hidden rounded-xl bg-[#203b68] px-3.5 py-3.5 text-white shadow-sm">
+      <div className="relative overflow-hidden rounded-xl bg-[#444444] px-3.5 py-3.5 text-white shadow-sm">
         <div className="absolute -right-7 -top-8 h-24 w-24 rounded-full bg-white/10" />
         <div className="flex items-center gap-3">
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/15">
@@ -138,10 +130,10 @@ export default function AttendeePass({
           <p className="text-xs font-semibold uppercase tracking-[0.15em] text-[#62718a]">Your Entry Pass</p>
           <div className="mt-2 rounded-xl bg-[#edf2f6] p-2">
             <div id="attendee-qr-code" className="rounded-lg bg-white p-1.5">
-              <QRCodeSVG value={attendee.passCode} size={132} level="M" fgColor="#0F223D" />
+              <QRCodeSVG value={qrUrl} size={132} level="H" fgColor="#444444" />
             </div>
           </div>
-          <p className="mt-2 font-mono text-sm font-semibold tracking-[0.12em] text-[#203b68]">{attendee.passCode}</p>
+          <p className="mt-2 font-mono text-sm font-semibold tracking-[0.12em] text-[#444444]">{attendee.passCode}</p>
           <p className="mt-1 text-xs text-gray-400">Present at event entrance for check-in</p>
         </div>
 
@@ -235,18 +227,18 @@ export default function AttendeePass({
           </dl>
         </div>
 
-        <button type="button" onClick={handleDownloadPass} disabled={isDownloading} className="flex w-full items-center justify-center gap-1.5 rounded-lg bg-[#203b68] px-3 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#172d50] disabled:opacity-60">
+        <button type="button" onClick={handleDownloadPass} disabled={isDownloading} className="flex w-full items-center justify-center gap-1.5 rounded-lg bg-[#444444] px-3 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#333333] disabled:opacity-60">
           <span>↓</span>{isDownloading ? "Generating QR Code..." : "Download QR Code"}
         </button>
         <div className="grid grid-cols-2 gap-1.5">
-          <button type="button" onClick={() => router.push("/dashboard/programme")} className="flex items-center justify-center rounded-lg bg-[#edf2f6] px-2 py-3 text-sm font-semibold text-[#203b68] transition-colors hover:bg-[#e2e9f0]">
+          <button type="button" onClick={() => router.push("/dashboard/programme")} className="flex items-center justify-center rounded-lg bg-[#edf2f6] px-2 py-3 text-sm font-semibold text-[#444444] transition-colors hover:bg-[#e2e9f0]">
             View Programme
           </button>
-          <button type="button" onClick={() => router.push("/dashboard")} className="flex items-center justify-center rounded-lg bg-[#edf2f6] px-2 py-3 text-sm font-semibold text-[#203b68] transition-colors hover:bg-[#e2e9f0]">
+          <button type="button" onClick={() => router.push("/dashboard")} className="flex items-center justify-center rounded-lg bg-[#edf2f6] px-2 py-3 text-sm font-semibold text-[#444444] transition-colors hover:bg-[#e2e9f0]">
             Open Check-In
           </button>
         </div>
-        <button type="button" onClick={onRegisterAnother} className="flex w-full items-center justify-center gap-1.5 py-2 text-sm text-gray-500 transition-colors hover:text-[#203b68]">
+        <button type="button" onClick={onRegisterAnother} className="flex w-full items-center justify-center gap-1.5 py-2 text-sm text-gray-500 transition-colors hover:text-[#444444]">
           <span>↻</span> Register next attendee
         </button>
       </div>

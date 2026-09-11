@@ -17,7 +17,7 @@ export default function QRCodeSVG({
   value,
   size = 200,
   level = "M",
-  fgColor = "#0D1E38",
+  fgColor = "#444444",
   bgColor = "#FFFFFF",
   className = "",
   title = "QR Code",
@@ -43,8 +43,8 @@ export default function QRCodeSVG({
   }
 
   const matrixSize = matrix.length;
-  // Quiet zone margin: 2 modules
-  const margin = 2;
+  // Quiet zone margin: 4 modules (ISO 18004 minimum; improves scanning)
+  const margin = 4;
   const viewBoxSize = matrixSize + margin * 2;
 
   // Build SVG path data for dark modules for performance

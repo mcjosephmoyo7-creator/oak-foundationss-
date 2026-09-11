@@ -1,52 +1,40 @@
 "use client";
 
 import React, { useState } from "react";
-import { supabase } from "../../lib/supabase";
-import type { CheckInResult } from "../../lib/types";
+import { useRouter } from "next/navigation";
+import { verifyAndCheckIn } from "../../lib/check-in";
 
 interface ManualCodeEntryProps {
-  onScanResult: (result: CheckInResult) => void;
+  onError?: (message: string) => void;
 }
 
-export default function ManualCodeEntry({ onScanResult }: ManualCodeEntryProps) {
+export default function ManualCodeEntry({ onError }: ManualCodeEntryProps) {
+  const router = useRouter();
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
 
   const handleCheckIn = async () => {
-    const trimmed = code.trim();
+    const trimmed = code.trim().toUpperCase();
     if (!trimmed) return;
 
     setLoading(true);
+    setErrorMsg("");
+
     try {
-      const { data: attendee, error: lookupError } = await supabase
-        .from("attendees")
-        .select("id")
-        .eq("qr_code", trimmed)
-        .maybeSingle();
+      const result = await verifyAndCheckIn(trimmed);
 
-      if (lookupError) {
-        onScanResult({ success: false, message: "Database lookup failed" });
-        setLoading(false);
+      if (result.success) {
+        const encoded = btoa(JSON.stringify(result));
+        router.push(`/dashboard/approved?r=${encodeURIComponent(encoded)}`);
         return;
       }
 
-      if (!attendee) {
-        onScanResult({ success: false, message: "Attendee not found" });
-        setLoading(false);
-        return;
-      }
-
-      const { data, error } = await supabase.rpc("check_in_attendee", {
-        p_attendee_id: attendee.id,
-      });
-
-      if (error) {
-        onScanResult({ success: false, message: "Check-in failed: " + error.message });
-      } else {
-        onScanResult(data as CheckInResult);
-      }
+      setErrorMsg(result.message);
+      onError?.(result.message);
     } catch {
-      onScanResult({ success: false, message: "An unexpected error occurred" });
+      setErrorMsg("An unexpected error occurred");
+      onError?.("An unexpected error occurred");
     } finally {
       setLoading(false);
     }
@@ -58,12 +46,17 @@ export default function ManualCodeEntry({ onScanResult }: ManualCodeEntryProps) 
 
   return (
     <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-2.5">
-      <h3 className="text-[7px] font-bold text-gray-500 uppercase tracking-[0.12em] mb-1">Manual Code Entry</h3>
+      <h3 className="text-[7px] font-bold text-gray-500 uppercase tracking-[0.12em] mb-1">
+        Manual Code Entry
+      </h3>
       <div className="flex gap-1">
         <input
           type="text"
           value={code}
-          onChange={(e) => setCode(e.target.value)}
+          onChange={(e) => {
+            setCode(e.target.value);
+            if (errorMsg) setErrorMsg("");
+          }}
           onKeyDown={handleKeyDown}
           placeholder="OAK-2026-XXXX-XXXX"
           className="flex-1 min-w-0 px-2 py-2 rounded-md border-0 bg-[#eef2f6] text-[8px] font-mono text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-100 transition-all"
@@ -73,21 +66,49 @@ export default function ManualCodeEntry({ onScanResult }: ManualCodeEntryProps) 
           type="button"
           onClick={handleCheckIn}
           disabled={loading || !code.trim()}
-          className="px-3 py-2 bg-[#102a50] hover:bg-[#1A365D] text-white text-[8px] font-semibold rounded-md shadow-sm transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+          className="px-3 py-2 bg-[#333333] hover:bg-[#333333] text-white text-[8px] font-semibold rounded-md shadow-sm transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
         >
           {loading ? (
-            <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+            <svg
+              className="animate-spin h-4 w-4 text-white"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              />
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+              />
             </svg>
           ) : (
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
             </svg>
           )}
           Check
         </button>
       </div>
+      {errorMsg && (
+        <p className="mt-1.5 text-[7px] text-red-600 font-medium">{errorMsg}</p>
+      )}
     </div>
   );
 }

@@ -17,9 +17,9 @@ export default function DigitalNametag({ attendee }: DigitalNametagProps) {
       </div>
 
       {/* Header Band */}
-      <div className="bg-[#0F223D] text-white py-4 px-6">
+      <div className="bg-[#444444] text-white py-4 px-6">
         <div className="flex items-center justify-center gap-2 mb-1">
-          <div className="w-6 h-6 rounded bg-white text-[#0F223D] font-black text-xs flex items-center justify-center">
+          <div className="w-6 h-6 rounded bg-white text-[#444444] font-black text-xs flex items-center justify-center">
             OAK
           </div>
           <span className="text-xs font-bold tracking-widest uppercase text-slate-200">
@@ -34,7 +34,7 @@ export default function DigitalNametag({ attendee }: DigitalNametagProps) {
       {/* Attendee Body */}
       <div className="p-6">
         {/* Role Pill */}
-        <div className="inline-block px-3 py-1 rounded-full bg-blue-50 text-[#0F223D] border border-blue-200 text-xs font-bold uppercase tracking-wider mb-4">
+        <div className="inline-block px-3 py-1 rounded-full bg-blue-50 text-[#444444] border border-blue-200 text-xs font-bold uppercase tracking-wider mb-4">
           {attendee.role}
         </div>
 
@@ -58,7 +58,7 @@ export default function DigitalNametag({ attendee }: DigitalNametagProps) {
               value={attendee.passCode}
               size={160}
               level="M"
-              fgColor="#0F223D"
+              fgColor="#444444"
             />
           </div>
           <span className="mt-3 font-mono text-xs font-bold text-gray-700 tracking-wider bg-gray-100 px-3 py-1 rounded-md">
@@ -74,7 +74,7 @@ export default function DigitalNametag({ attendee }: DigitalNametagProps) {
       </div>
 
       {/* Lanyard Bottom Accent */}
-      <div className="h-2 bg-linear-to-r from-blue-600 via-[#0F223D] to-indigo-600" />
+      <div className="h-2 bg-linear-to-r from-blue-600 via-[#444444] to-indigo-600" />
     </div>
   );
 }

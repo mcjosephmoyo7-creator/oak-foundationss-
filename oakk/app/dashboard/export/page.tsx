@@ -8,6 +8,13 @@ interface ExportRow extends Day3Attendee {
   check_ins: CheckIn[];
 }
 
+const partners = [
+  { name: "Africa Civil Alliance", focus: "Climate justice & grantmaking", location: "Nairobi, Kenya", tone: "bg-[#e8effa] text-[#294c82]" },
+  { name: "MENA Rights Group", focus: "Rights-based approaches", location: "Tunis, Tunisia", tone: "bg-[#fff3c9] text-[#bd8500]" },
+  { name: "Digital Frontiers Institute", focus: "Digital rights & access", location: "Accra, Ghana", tone: "bg-[#f3eaff] text-[#8648dc]" },
+  { name: "Nordic Evaluation Centre", focus: "Long-term change", location: "Helsinki, Finland", tone: "bg-[#fff0e6] text-[#d86b25]" },
+];
+
 export default function ExportPage() {
   const [loading, setLoading] = useState(false);
   const [row_count, setRowCount] = useState<number | null>(null);
@@ -60,75 +67,52 @@ export default function ExportPage() {
   }, [today]);
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight">Export Data</h1>
-        <p className="text-sm text-gray-500 mt-1">Export accommodation and check-in information to CSV</p>
-      </div>
+    <div className="programme-shell mx-auto w-full max-w-85.5 pb-5">
+      <header className="mb-3">
+        <h1 className="text-[13px] font-extrabold tracking-[-0.02em] text-[#111b2c]">Partners</h1>
+        <p className="mt-0.5 text-[8px] text-[#7a879c]">OAK Partner Convening 2026</p>
+      </header>
 
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 sm:p-8">
-        <div className="max-w-md">
-          <h2 className="text-base font-bold text-gray-900 mb-2">CSV Export</h2>
-          <p className="text-sm text-gray-500 mb-6">
-            Download a CSV file containing all registered attendees with their accommodation details
-            and today&apos;s check-in status. This is useful for the accommodation team to track arrivals.
-          </p>
+      <section className="mb-4 rounded-xl bg-[#17253e] px-3.5 py-3 text-white shadow-[0_7px_16px_rgba(23,37,62,0.2)]">
+        <p className="text-[6px] font-semibold uppercase tracking-[0.13em] text-white/55">01 / Convening network</p>
+        <h2 className="mt-2 text-[11px] font-extrabold tracking-tight">Partners shaping change together</h2>
+        <p className="mt-1.5 text-[7px] leading-3 text-white/55">Meet the organisations joining this year&apos;s conversations across regions and movements.</p>
+      </section>
 
-          <div className="bg-gray-50 rounded-xl border border-gray-200 p-4 mb-6">
-            <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-2">Export contains:</p>
-            <ul className="space-y-1.5 text-xs text-gray-700">
-              <li className="flex items-center gap-2">
-                <span className="w-1 h-1 rounded-full bg-gray-400" /> Full Name
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="w-1 h-1 rounded-full bg-gray-400" /> Email Address
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="w-1 h-1 rounded-full bg-gray-400" /> Accommodation
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="w-1 h-1 rounded-full bg-gray-400" /> Check-in Date
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="w-1 h-1 rounded-full bg-gray-400" /> Check-in Time
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="w-1 h-1 rounded-full bg-gray-400" /> Check-in Status
-              </li>
-            </ul>
-          </div>
-
-          <button
-            type="button"
-            onClick={exportCSV}
-            disabled={loading}
-            className="w-full py-3 px-4 bg-[#0F223D] hover:bg-[#1A365D] text-white text-sm font-semibold rounded-xl shadow-sm transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-          >
-            {loading ? (
-              <>
-                <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                </svg>
-                Exporting...
-              </>
-            ) : (
-              <>
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
-                </svg>
-                Download CSV
-              </>
-            )}
-          </button>
-
-          {row_count !== null && (
-            <p className="text-xs text-emerald-600 text-center mt-3">
-              Successfully exported {row_count} attendee record(s)
-            </p>
-          )}
+      <section aria-labelledby="partner-directory-heading">
+        <div className="mb-2 flex items-center justify-between">
+          <h2 id="partner-directory-heading" className="text-[8px] font-extrabold text-[#17243a]">02 / Partner Directory</h2>
+          <span className="text-[6px] text-[#8c97a8]">{partners.length} organisations</span>
         </div>
-      </div>
+        <div className="space-y-1.5">
+          {partners.map((partner) => (
+            <article key={partner.name} className="flex items-center gap-2 rounded-xl bg-white px-2.5 py-2.5 shadow-[0_3px_10px_rgba(31,48,77,0.09)]">
+              <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-[9px] font-extrabold ${partner.tone}`}>
+                {partner.name.slice(0, 1)}
+              </div>
+              <div className="min-w-0 flex-1">
+                <h3 className="truncate text-[8px] font-bold leading-2.5 text-[#17243a]">{partner.name}</h3>
+                <p className="mt-0.5 truncate text-[6px] text-[#718097]">{partner.focus}</p>
+                <p className="mt-0.5 truncate text-[6px] text-[#9aa5b5]">⌖ {partner.location}</p>
+              </div>
+              <span className="text-[9px] text-[#9aa5b5]">›</span>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="mt-4 rounded-xl bg-white px-3 py-3 shadow-[0_3px_10px_rgba(31,48,77,0.09)]">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-[8px] font-extrabold text-[#17243a]">Resources</h2>
+            <p className="mt-1 text-[6px] text-[#718097]">Download the latest attendee directory.</p>
+          </div>
+          <button type="button" onClick={exportCSV} disabled={loading} className="rounded-lg bg-[#19345b] px-2.5 py-2 text-[6px] font-semibold text-white transition-colors hover:bg-[#294c82] disabled:opacity-50">
+            {loading ? "Exporting..." : "Download CSV"}
+          </button>
+        </div>
+        {row_count !== null && <p className="mt-2 text-[6px] text-emerald-600">Exported {row_count} attendee record(s).</p>}
+      </section>
     </div>
   );
 }
