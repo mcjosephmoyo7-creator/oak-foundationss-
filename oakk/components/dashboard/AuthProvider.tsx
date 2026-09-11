@@ -13,6 +13,11 @@ interface AuthContextType {
   signOut: () => Promise<void>;
 }
 
+interface AuthProviderProps {
+  children: React.ReactNode;
+  requireAdmin?: boolean;
+}
+
 const AuthContext = createContext<AuthContextType>({
   user: null,
   isAdmin: false,
@@ -25,7 +30,7 @@ export function useAuth() {
   return useContext(AuthContext);
 }
 
-export default function AuthProvider({ children }: { children: React.ReactNode }) {
+export default function AuthProvider({ children, requireAdmin = false }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -72,6 +77,14 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
 
     return () => subscription.unsubscribe();
   }, [checkAdminStatus]);
+
+  useEffect(() => {
+    if (!requireAdmin || loading) return;
+
+    if (!user || !isAdmin) {
+      router.replace("/login");
+    }
+  }, [isAdmin, loading, requireAdmin, router, user]);
 
   const signIn = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });

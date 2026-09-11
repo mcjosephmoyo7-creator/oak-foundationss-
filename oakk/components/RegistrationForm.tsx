@@ -6,7 +6,12 @@ import {
   FormErrors,
   ROLE_OPTIONS,
 } from "../lib/types";
-import { supabase } from "../lib/supabase";
+import {
+  FunctionsFetchError,
+  FunctionsHttpError,
+  FunctionsRelayError,
+} from "@supabase/supabase-js";
+import { isSupabaseConfigured, supabase } from "../lib/supabase";
 import { generatePassCode, saveAttendeeToStorage } from "../lib/utils";
 
 interface RegistrationFormProps {
@@ -107,6 +112,12 @@ export default function RegistrationForm({ onSuccess }: RegistrationFormProps) {
     setSubmitError(null);
 
     try {
+      if (!isSupabaseConfigured) {
+        throw new Error(
+          "Registration is temporarily unavailable because the event service is not configured. Please contact the event team."
+        );
+      }
+
       const { data, error } = await supabase.functions.invoke(
         "register-attendee",
         {
@@ -118,11 +129,85 @@ export default function RegistrationForm({ onSuccess }: RegistrationFormProps) {
             email: formData.email.trim().toLowerCase(),
             phone: formData.phone.trim() || undefined,
             dietary_requirements: formData.dietary.trim() || undefined,
+            travel_support: formData.travel === "yes",
+            accommodation_needed: formData.accessibility.trim() !== "",
           },
         }
       );
 
       if (error) {
+        if (error instanceof FunctionsHttpError) {
+          // Extract the real error message sent by the edge function
+          let errorBody: Record<string, unknown> | null = null;
+          try {
+            errorBody = (await error.context.json()) as Record<
+              string,
+              unknown
+            >;
+          } catch {
+            errorBody = null;
+          }
+
+          // Returning attendee — recover their existing pass and complete the flow
+          if (errorBody?.already_registered && errorBody?.attendee) {
+            const existing = errorBody.attendee as {
+              id?: string;
+              full_name?: string;
+              email?: string | null;
+              phone?: string | null;
+              qr_code?: string;
+              organization?: string | null;
+              role?: string | null;
+              created_at?: string;
+            };
+
+            const nameParts = (existing.full_name || "")
+              .split(" ")
+              .filter(Boolean);
+            const existingAttendee: AttendeeRegistration = {
+              id:
+                existing.id ||
+                "att_" +
+                  Date.now() +
+                  "_" +
+                  Math.random().toString(36).substring(2, 7),
+              passCode: existing.qr_code || generatePassCode(),
+              firstName: nameParts[0] || formData.firstName.trim(),
+              lastName:
+                nameParts.slice(1).join(" ") || formData.lastName.trim(),
+              organisation:
+                existing.organization || formData.organisation.trim(),
+              role: existing.role || formData.role,
+              email: (existing.email || formData.email.trim()).toLowerCase(),
+              phone: existing.phone || formData.phone.trim() || undefined,
+              consentAgreed: formData.consentAgreed,
+              registeredAt: existing.created_at || new Date().toISOString(),
+            };
+
+            saveAttendeeToStorage(existingAttendee);
+            onSuccess(existingAttendee);
+            return;
+          }
+
+          throw new Error(
+            String(
+              errorBody?.error || "Registration failed. Please try again."
+            )
+          );
+        }
+
+        if (error instanceof FunctionsFetchError) {
+          throw new Error(
+            "We could not reach the registration service. Please check your connection and try again."
+          );
+        }
+
+        if (error instanceof FunctionsRelayError) {
+          throw new Error(
+            "The registration service is temporarily unavailable. Please try again shortly."
+          );
+        }
+
         throw error;
       }
 
@@ -132,10 +217,13 @@ export default function RegistrationForm({ onSuccess }: RegistrationFormProps) {
 
       const registered = data.attendee;
 
-      const passCode = generatePassCode();
+      const passCode =
+        (registered?.qr_code as string) ||
+        (registered?.unique_id as string) ||
+        generatePassCode();
       const newAttendee: AttendeeRegistration = {
         id:
-          (registered?.unique_id as string) ||
+          (registered?.id as string) ||
           "att_" + Date.now() + "_" + Math.random().toString(36).substring(2, 7),
         passCode,
         firstName: formData.firstName.trim(),
@@ -156,10 +244,10 @@ export default function RegistrationForm({ onSuccess }: RegistrationFormProps) {
       saveAttendeeToStorage(newAttendee);
       onSuccess(newAttendee);
     } catch (err) {
-      const message =
-        err instanceof Error
-          ? err.message
-          : "Registration failed. Please try again.";
+      const rawMessage = err instanceof Error ? err.message : "";
+      const message = /fetch|network|failed to send/i.test(rawMessage)
+        ? "We could not reach the registration service. Please check your connection and try again."
+        : rawMessage || "Registration failed. Please try again.";
       setSubmitError(message);
     } finally {
       setIsSubmitting(false);
@@ -167,19 +255,19 @@ export default function RegistrationForm({ onSuccess }: RegistrationFormProps) {
   };
 
   return (
-    <div className="w-full bg-white rounded-2xl border border-gray-200 shadow-sm p-6 sm:p-8">
-      <div className="border-b border-gray-100 pb-5 mb-6">
-        <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
+    <div className="w-full bg-[#F7FAFD] rounded-2xl border border-[#D6DEE8] shadow-sm p-6 sm:p-8">
+      <div className="border-b border-[#E2E9F1] pb-5 mb-6">
+        <h2 className="text-xl sm:text-2xl font-bold text-[#162E55]">
           Registration Form
         </h2>
-        <p className="text-xs sm:text-sm text-gray-500 mt-1">
+        <p className="text-xs sm:text-sm text-[#3A5A85] mt-1">
           Complete the form below to confirm your attendance and generate your unique QR entrance pass.
         </p>
       </div>
 
       <form onSubmit={handleSubmit} noValidate className="space-y-5">
         {submitError && (
-          <div className="p-3.5 rounded-xl border border-red-200 bg-red-50 text-red-800 text-sm font-medium flex items-start gap-2">
+          <div role="alert" aria-live="polite" className="p-3.5 rounded-xl border border-red-200 bg-red-50 text-red-800 text-sm font-medium flex items-start gap-2">
             <span>⚠</span>
             <span>{submitError}</span>
           </div>
@@ -190,7 +278,7 @@ export default function RegistrationForm({ onSuccess }: RegistrationFormProps) {
           <div>
             <label
               htmlFor="firstName"
-              className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5"
+              className="block text-xs font-semibold text-[#3A5A85] uppercase tracking-wider mb-1.5"
             >
               First Name <span className="text-red-500">*</span>
             </label>
@@ -201,10 +289,10 @@ export default function RegistrationForm({ onSuccess }: RegistrationFormProps) {
               value={formData.firstName}
               onChange={handleChange}
               placeholder="e.g. Maria"
-              className={`w-full px-3.5 py-2.5 rounded-lg border text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 transition-all ${
+              className={`w-full px-3.5 py-2.5 rounded-lg border text-sm text-[#162E55] placeholder:text-[#5C7AA2] focus:outline-none focus:ring-2 transition-all ${
                 errors.firstName
                   ? "border-red-400 focus:ring-red-200 bg-red-50/20"
-                  : "border-gray-300 focus:ring-blue-100 focus:border-[#0F223D]"
+                  : "border-[#C9D4E0] focus:ring-blue-100 focus:border-[#162E55]"
               }`}
             />
             {errors.firstName && (
@@ -217,7 +305,7 @@ export default function RegistrationForm({ onSuccess }: RegistrationFormProps) {
           <div>
             <label
               htmlFor="lastName"
-              className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5"
+              className="block text-xs font-semibold text-[#3A5A85] uppercase tracking-wider mb-1.5"
             >
               Last Name <span className="text-red-500">*</span>
             </label>
@@ -228,10 +316,10 @@ export default function RegistrationForm({ onSuccess }: RegistrationFormProps) {
               value={formData.lastName}
               onChange={handleChange}
               placeholder="e.g. Schmidt"
-              className={`w-full px-3.5 py-2.5 rounded-lg border text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 transition-all ${
+              className={`w-full px-3.5 py-2.5 rounded-lg border text-sm text-[#162E55] placeholder:text-[#5C7AA2] focus:outline-none focus:ring-2 transition-all ${
                 errors.lastName
                   ? "border-red-400 focus:ring-red-200 bg-red-50/20"
-                  : "border-gray-300 focus:ring-blue-100 focus:border-[#0F223D]"
+                  : "border-[#C9D4E0] focus:ring-blue-100 focus:border-[#162E55]"
               }`}
             />
             {errors.lastName && (
@@ -246,7 +334,7 @@ export default function RegistrationForm({ onSuccess }: RegistrationFormProps) {
         <div>
           <label
             htmlFor="organisation"
-            className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5"
+            className="block text-xs font-semibold text-[#3A5A85] uppercase tracking-wider mb-1.5"
           >
             Organisation <span className="text-red-500">*</span>
           </label>
@@ -257,10 +345,10 @@ export default function RegistrationForm({ onSuccess }: RegistrationFormProps) {
             value={formData.organisation}
             onChange={handleChange}
             placeholder="Your organisation name"
-            className={`w-full px-3.5 py-2.5 rounded-lg border text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 transition-all ${
+            className={`w-full px-3.5 py-2.5 rounded-lg border text-sm text-[#162E55] placeholder:text-[#5C7AA2] focus:outline-none focus:ring-2 transition-all ${
               errors.organisation
                 ? "border-red-400 focus:ring-red-200 bg-red-50/20"
-                : "border-gray-300 focus:ring-blue-100 focus:border-[#0F223D]"
+                : "border-[#C9D4E0] focus:ring-blue-100 focus:border-[#162E55]"
             }`}
           />
           {errors.organisation && (
@@ -275,11 +363,11 @@ export default function RegistrationForm({ onSuccess }: RegistrationFormProps) {
           <div className="flex items-center justify-between mb-1.5">
             <label
               htmlFor="subPartner"
-              className="block text-xs font-semibold text-gray-700 uppercase tracking-wider"
+              className="block text-xs font-semibold text-[#3A5A85] uppercase tracking-wider"
             >
               Sub-Partner / Programme Area
             </label>
-            <span className="text-xs text-gray-400">Optional</span>
+            <span className="text-xs text-[#5C7AA2]">Optional</span>
           </div>
           <input
             type="text"
@@ -288,7 +376,7 @@ export default function RegistrationForm({ onSuccess }: RegistrationFormProps) {
             value={formData.subPartner}
             onChange={handleChange}
             placeholder="e.g. Climate Justice / Youth Tech"
-            className="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-[#0F223D] transition-all"
+            className="w-full px-3.5 py-2.5 rounded-lg border border-[#C9D4E0] text-sm text-[#162E55] placeholder:text-[#5C7AA2] focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-[#162E55] transition-all"
           />
         </div>
 
@@ -296,7 +384,7 @@ export default function RegistrationForm({ onSuccess }: RegistrationFormProps) {
         <div>
           <label
             htmlFor="role"
-            className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5"
+            className="block text-xs font-semibold text-[#3A5A85] uppercase tracking-wider mb-1.5"
           >
             Role / Capacity <span className="text-red-500">*</span>
           </label>
@@ -306,22 +394,22 @@ export default function RegistrationForm({ onSuccess }: RegistrationFormProps) {
               name="role"
               value={formData.role}
               onChange={handleChange}
-              className={`w-full px-3.5 py-2.5 rounded-lg border text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 transition-all appearance-none cursor-pointer ${
+              className={`w-full px-3.5 py-2.5 rounded-lg border text-sm text-[#162E55] bg-[#F7FAFD] focus:outline-none focus:ring-2 transition-all appearance-none cursor-pointer ${
                 errors.role
                   ? "border-red-400 focus:ring-red-200 bg-red-50/20"
-                  : "border-gray-300 focus:ring-blue-100 focus:border-[#0F223D]"
-              } ${!formData.role ? "text-gray-400" : "text-gray-900"}`}
+                  : "border-[#C9D4E0] focus:ring-blue-100 focus:border-[#162E55]"
+              } ${!formData.role ? "text-[#5C7AA2]" : "text-[#162E55]"}`}
             >
               <option value="" disabled>
                 Select your role
               </option>
               {ROLE_OPTIONS.map((opt) => (
-                <option key={opt} value={opt} className="text-gray-900">
+                <option key={opt} value={opt} className="text-[#162E55]">
                   {opt}
                 </option>
               ))}
             </select>
-            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
+            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-[#3A5A85]">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
               </svg>
@@ -339,7 +427,7 @@ export default function RegistrationForm({ onSuccess }: RegistrationFormProps) {
           <div>
             <label
               htmlFor="email"
-              className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5"
+              className="block text-xs font-semibold text-[#3A5A85] uppercase tracking-wider mb-1.5"
             >
               Email Address <span className="text-red-500">*</span>
             </label>
@@ -350,10 +438,10 @@ export default function RegistrationForm({ onSuccess }: RegistrationFormProps) {
               value={formData.email}
               onChange={handleChange}
               placeholder="you@organisation.org"
-              className={`w-full px-3.5 py-2.5 rounded-lg border text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 transition-all ${
+              className={`w-full px-3.5 py-2.5 rounded-lg border text-sm text-[#162E55] placeholder:text-[#5C7AA2] focus:outline-none focus:ring-2 transition-all ${
                 errors.email
                   ? "border-red-400 focus:ring-red-200 bg-red-50/20"
-                  : "border-gray-300 focus:ring-blue-100 focus:border-[#0F223D]"
+                  : "border-[#C9D4E0] focus:ring-blue-100 focus:border-[#162E55]"
               }`}
             />
             {errors.email && (
@@ -367,11 +455,11 @@ export default function RegistrationForm({ onSuccess }: RegistrationFormProps) {
             <div className="flex items-center justify-between mb-1.5">
               <label
                 htmlFor="phone"
-                className="block text-xs font-semibold text-gray-700 uppercase tracking-wider"
+                className="block text-xs font-semibold text-[#3A5A85] uppercase tracking-wider"
               >
                 Phone Number
               </label>
-              <span className="text-xs text-gray-400">Optional</span>
+              <span className="text-xs text-[#5C7AA2]">Optional</span>
             </div>
             <input
               type="tel"
@@ -380,14 +468,14 @@ export default function RegistrationForm({ onSuccess }: RegistrationFormProps) {
               value={formData.phone}
               onChange={handleChange}
               placeholder="+263 xx xxx xxxx / +41 xx"
-              className="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-[#0F223D] transition-all"
+              className="w-full px-3.5 py-2.5 rounded-lg border border-[#C9D4E0] text-sm text-[#162E55] placeholder:text-[#5C7AA2] focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-[#162E55] transition-all"
             />
           </div>
         </div>
 
         {/* Requirements Section */}
-        <div className="pt-4 border-t border-gray-100 space-y-4">
-          <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider">
+        <div className="pt-4 border-t border-[#E2E9F1] space-y-4">
+          <h3 className="text-sm font-bold text-[#162E55] uppercase tracking-wider">
             Requirements
           </h3>
 
@@ -395,7 +483,7 @@ export default function RegistrationForm({ onSuccess }: RegistrationFormProps) {
           <div>
             <label
               htmlFor="dietary"
-              className="block text-xs font-semibold text-gray-700 mb-1"
+              className="block text-xs font-semibold text-[#3A5A85] mb-1"
             >
               Dietary Requirements
             </label>
@@ -406,7 +494,7 @@ export default function RegistrationForm({ onSuccess }: RegistrationFormProps) {
               value={formData.dietary}
               onChange={handleChange}
               placeholder="e.g. Vegetarian, Halal, Gluten free"
-              className="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-[#0F223D] transition-all"
+              className="w-full px-3.5 py-2.5 rounded-lg border border-[#C9D4E0] text-sm text-[#162E55] placeholder:text-[#5C7AA2] focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-[#162E55] transition-all"
             />
           </div>
 
@@ -414,7 +502,7 @@ export default function RegistrationForm({ onSuccess }: RegistrationFormProps) {
           <div>
             <label
               htmlFor="accessibility"
-              className="block text-xs font-semibold text-gray-700 mb-1"
+              className="block text-xs font-semibold text-[#3A5A85] mb-1"
             >
               Accessibility Requirements
             </label>
@@ -425,7 +513,7 @@ export default function RegistrationForm({ onSuccess }: RegistrationFormProps) {
               value={formData.accessibility}
               onChange={handleChange}
               placeholder="e.g. Wheelchair access, hearing loop"
-              className="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-[#0F223D] transition-all"
+              className="w-full px-3.5 py-2.5 rounded-lg border border-[#C9D4E0] text-sm text-[#162E55] placeholder:text-[#5C7AA2] focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-[#162E55] transition-all"
             />
           </div>
 
@@ -433,7 +521,7 @@ export default function RegistrationForm({ onSuccess }: RegistrationFormProps) {
           <div>
             <label
               htmlFor="travel"
-              className="block text-xs font-semibold text-gray-700 mb-1"
+              className="block text-xs font-semibold text-[#3A5A85] mb-1"
             >
               Travel &amp; Accommodation
             </label>
@@ -444,7 +532,7 @@ export default function RegistrationForm({ onSuccess }: RegistrationFormProps) {
               value={formData.travel}
               onChange={handleChange}
               placeholder="e.g. Flight from London, hotel needed"
-              className="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-[#0F223D] transition-all"
+              className="w-full px-3.5 py-2.5 rounded-lg border border-[#C9D4E0] text-sm text-[#162E55] placeholder:text-[#5C7AA2] focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-[#162E55] transition-all"
             />
           </div>
         </div>
@@ -455,7 +543,7 @@ export default function RegistrationForm({ onSuccess }: RegistrationFormProps) {
             className={`p-3.5 rounded-xl border transition-colors ${
               errors.consentAgreed
                 ? "border-red-300 bg-red-50/50"
-                : "border-gray-200 bg-gray-50/80"
+                : "border-[#D6DEE8] bg-[#F3F6FA]/80"
             }`}
           >
             <label className="flex items-start gap-3 cursor-pointer">
@@ -464,10 +552,10 @@ export default function RegistrationForm({ onSuccess }: RegistrationFormProps) {
                 name="consentAgreed"
                 checked={formData.consentAgreed}
                 onChange={handleChange}
-                className="mt-0.5 h-4 w-4 rounded border-gray-300 text-[#0F223D] focus:ring-[#0F223D] transition-colors cursor-pointer"
+                className="mt-0.5 h-4 w-4 rounded border-[#C9D4E0] text-[#162E55] focus:ring-[#162E55] transition-colors cursor-pointer"
               />
-              <span className="text-xs text-gray-700 leading-relaxed select-none">
-                I agree to <span className="font-semibold text-gray-900">OAK Foundation&apos;s privacy policy</span> and consent to my registration data being used for event coordination and entrance verification.
+              <span className="text-xs text-[#3A5A85] leading-relaxed select-none">
+                I agree to <span className="font-semibold text-[#162E55]">OAK Foundation&apos;s privacy policy</span> and consent to my registration data being used for event coordination and entrance verification.
               </span>
             </label>
           </div>
@@ -483,12 +571,12 @@ export default function RegistrationForm({ onSuccess }: RegistrationFormProps) {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full py-3.5 px-4 bg-[#0F223D] hover:bg-[#1A365D] active:bg-[#0A1628] text-white text-sm sm:text-base font-semibold rounded-xl shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-75 disabled:cursor-not-allowed"
+            className="w-full py-3.5 px-4 bg-[#162E55] hover:bg-[#112344] active:bg-[#0D1A33] text-[#EDF1F7] text-sm sm:text-base font-semibold rounded-xl shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-75 disabled:cursor-not-allowed"
           >
             {isSubmitting ? (
               <>
                 <svg
-                  className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                  className="animate-spin -ml-1 mr-2 h-4 w-4 text-[#EDF1F7]"
                   fill="none"
                   viewBox="0 0 24 24"
                 >
@@ -509,15 +597,15 @@ export default function RegistrationForm({ onSuccess }: RegistrationFormProps) {
                 <span>Generating Entry Pass &amp; QR Code...</span>
               </>
             ) : (
-              <span>Register &amp; Generate QR Code</span>
+              <span>Register</span>
             )}
           </button>
         </div>
 
         {/* GDPR / Privacy Statement Notice */}
-        <div className="text-center pt-2 flex items-center justify-center gap-1.5 text-xs text-gray-500">
+        <div className="text-center pt-2 flex items-center justify-center gap-1.5 text-xs text-[#3A5A85]">
           <svg
-            className="w-3.5 h-3.5 text-gray-400"
+            className="w-3.5 h-3.5 text-[#5C7AA2]"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"

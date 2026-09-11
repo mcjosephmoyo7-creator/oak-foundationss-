@@ -58,6 +58,11 @@ export interface Day3Attendee {
   phone: string | null;
   qr_code: string | null;
   accommodation: string | null;
+  organization?: string | null;
+  role?: string | null;
+  dietary_requirements?: string | null;
+  travel_support?: boolean | null;
+  accommodation_needed?: boolean | null;
   created_at: string;
 }
 
@@ -94,6 +99,8 @@ export interface CheckInResult {
     email: string | null;
     accommodation: string | null;
     qr_code?: string | null;
+    organization?: string | null;
+    role?: string | null;
   };
 }
 

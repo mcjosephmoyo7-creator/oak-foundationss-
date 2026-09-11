@@ -1,4 +1,4 @@
-import { createClient } from "npm:@supabase/supabase-js@2";
+import { createClient } from "@supabase/supabase-js";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -7,7 +7,26 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-Deno.serve(async (req) => {
+type DenoRuntime = {
+  env: { get(name: string): string | undefined };
+  serve(handler: (req: Request) => Response | Promise<Response>): void;
+};
+
+const deno = (globalThis as typeof globalThis & { Deno: DenoRuntime }).Deno;
+
+const jsonResponse = (
+  body: Record<string, unknown>,
+  status: number
+): Response =>
+  new Response(JSON.stringify(body), {
+    status,
+    headers: {
+      ...corsHeaders,
+      "Content-Type": "application/json",
+    },
+  });
+
+deno.serve(async (req: Request) => {
   // Handle browser CORS preflight request
   if (req.method === "OPTIONS") {
     return new Response("ok", {
@@ -17,40 +36,48 @@ Deno.serve(async (req) => {
 
   // Only allow POST requests
   if (req.method !== "POST") {
-    return new Response(
-      JSON.stringify({
+    return jsonResponse(
+      {
         success: false,
         error: "Method not allowed",
-      }),
-      {
-        status: 405,
-        headers: {
-          ...corsHeaders,
-          "Content-Type": "application/json",
-        },
-      }
+      },
+      405
     );
   }
 
   try {
     // Get Supabase credentials automatically provided
     // to the Edge Function
-    const supabaseUrl = Deno.env.get("SUPABASE_URL");
-    const supabaseKey = Deno.env.get("SUPABASE_ANON_KEY");
+    const supabaseUrl = deno.env.get("SUPABASE_URL");
+    const supabaseKey =
+      deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ||
+      deno.env.get("SUPABASE_ANON_KEY");
 
     if (!supabaseUrl || !supabaseKey) {
-      throw new Error(
-        "Supabase environment variables are missing"
+      return jsonResponse(
+        {
+          success: false,
+          error: "Registration service is not configured",
+        },
+        500
       );
     }
 
-    const supabase = createClient(
-      supabaseUrl,
-      supabaseKey
-    );
+    const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Read request body
-    const body = await req.json();
+    // Read request body (safe: invalid JSON -> 400, never 500)
+    let body: Record<string, unknown>;
+    try {
+      body = await req.json();
+    } catch {
+      return jsonResponse(
+        {
+          success: false,
+          error: "Invalid request body",
+        },
+        400
+      );
+    }
 
     const {
       first_name,
@@ -64,41 +91,35 @@ Deno.serve(async (req) => {
       accommodation_needed,
     } = body;
 
+    // Normalize string fields defensively
+    const str = (value: unknown): string =>
+      typeof value === "string" ? value.trim() : "";
+
+    const firstName = str(first_name);
+    const lastName = str(last_name);
+    const emailValue = str(email).toLowerCase();
+
     // Validate required fields
-    if (!first_name || !last_name || !email) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error:
-            "First name, last name and email are required",
-        }),
+    if (!firstName || !lastName || !emailValue) {
+      return jsonResponse(
         {
-          status: 400,
-          headers: {
-            ...corsHeaders,
-            "Content-Type": "application/json",
-          },
-        }
+          success: false,
+          error: "First name, last name and email are required",
+        },
+        400
       );
     }
 
     // Validate email
-    const emailRegex =
-      /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    if (!emailRegex.test(email)) {
-      return new Response(
-        JSON.stringify({
+    if (!emailRegex.test(emailValue)) {
+      return jsonResponse(
+        {
           success: false,
           error: "Invalid email address",
-        }),
-        {
-          status: 400,
-          headers: {
-            ...corsHeaders,
-            "Content-Type": "application/json",
-          },
-        }
+        },
+        400
       );
     }
 
@@ -107,83 +128,54 @@ Deno.serve(async (req) => {
       data: existingAttendee,
       error: existingError,
     } = await supabase
-      .from("attendes")
-      .select("id")
-      .eq("email", email.toLowerCase().trim())
+      .from("attendees")
+      .select("*")
+      .eq("email", emailValue)
       .maybeSingle();
 
     if (existingError) {
       console.error(existingError);
 
-      return new Response(
-        JSON.stringify({
+      return jsonResponse(
+        {
           success: false,
           error: existingError.message,
-        }),
-        {
-          status: 500,
-          headers: {
-            ...corsHeaders,
-            "Content-Type": "application/json",
-          },
-        }
+        },
+        500
       );
     }
 
-    // Prevent duplicate registration
+    // Return the existing attendee so the client can recover
+    // their current QR pass instead of blocking the flow
     if (existingAttendee) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error:
-            "An attendee with this email is already registered",
-        }),
+      return jsonResponse(
         {
-          status: 409,
-          headers: {
-            ...corsHeaders,
-            "Content-Type": "application/json",
-          },
-        }
+          success: false,
+          already_registered: true,
+          error: "An attendee with this email is already registered",
+          attendee: existingAttendee,
+        },
+        409
       );
     }
 
     // Generate a unique ID
     // This can be used as the attendee's QR identifier
-    const uniqueId = crypto.randomUUID();
+    const qrCode = `OAK-2026-${crypto.randomUUID().slice(0, 8).toUpperCase()}`;
 
     // Insert attendee into Supabase
     const { data, error } = await supabase
-      .from("attendes")
+      .from("attendees")
       .insert({
-        first_name: first_name.trim(),
-        last_name: last_name.trim(),
-        email: email.trim().toLowerCase(),
-
-        organization:
-          organization?.trim() || null,
-
-        role:
-          role?.trim() || null,
-
-        phone:
-          phone?.trim() || null,
-
-        dietary_requirements:
-          dietary_requirements?.trim() || null,
-
-        // IMPORTANT:
-        // These database column names contain hyphen/spelling
-        // exactly as defined in the Supabase database.
-        "travel-support":
-          travel_support ?? false,
-
-        accomodation_needed:
-          accommodation_needed ?? false,
-
-        unique_id: uniqueId,
-
-        status: "registered",
+        full_name: `${firstName} ${lastName}`,
+        email: emailValue,
+        phone: str(phone) || null,
+        organization: str(organization) || null,
+        role: str(role) || null,
+        dietary_requirements: str(dietary_requirements) || null,
+        travel_support: (travel_support as boolean) ?? false,
+        accommodation_needed: (accommodation_needed as boolean) ?? false,
+        qr_code: qrCode,
       })
       .select()
       .single();
@@ -191,58 +183,36 @@ Deno.serve(async (req) => {
     if (error) {
       console.error("Database error:", error);
 
-      return new Response(
-        JSON.stringify({
+      return jsonResponse(
+        {
           success: false,
           error: error.message,
-        }),
-        {
-          status: 500,
-          headers: {
-            ...corsHeaders,
-            "Content-Type": "application/json",
-          },
-        }
+        },
+        500
       );
     }
 
     // Successful registration
-    return new Response(
-      JSON.stringify({
-        success: true,
-        message:
-          "Attendee registered successfully",
-        attendee: data,
-      }),
+    return jsonResponse(
       {
-        status: 201,
-        headers: {
-          ...corsHeaders,
-          "Content-Type": "application/json",
-        },
-      }
+        success: true,
+        message: "Attendee registered successfully",
+        attendee: data,
+      },
+      201
     );
   } catch (error) {
-    console.error(
-      "Unexpected error:",
-      error
-    );
+    console.error("Unexpected error:", error);
 
-    return new Response(
-      JSON.stringify({
+    return jsonResponse(
+      {
         success: false,
         error:
           error instanceof Error
             ? error.message
             : "An unexpected error occurred",
-      }),
-      {
-        status: 500,
-        headers: {
-          ...corsHeaders,
-          "Content-Type": "application/json",
-        },
-      }
+      },
+      500
     );
   }
 });

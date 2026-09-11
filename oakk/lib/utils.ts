@@ -1,4 +1,55 @@
 import { AttendeeRegistration } from "./types";
+import { generateQRMatrix, type QRECCLevel } from "./qrcode";
+
+/**
+ * Draws a scannable QR code directly onto a canvas context.
+ * Drawing module-by-module (instead of rasterizing an SVG) produces a crisp,
+ * high-contrast QR that scans reliably from screens or print.
+ */
+export function drawQRToContext(
+  ctx: CanvasRenderingContext2D,
+  value: string,
+  x: number,
+  y: number,
+  size: number,
+  opts: {
+    level?: QRECCLevel;
+    fgColor?: string;
+    bgColor?: string;
+    quietZoneModules?: number;
+  } = {}
+): boolean {
+  const {
+    level = "H",
+    fgColor = "#162E55",
+    bgColor = "#F7FAFD",
+    quietZoneModules = 4,
+  } = opts;
+
+  const matrix = generateQRMatrix(value, level);
+  if (!matrix.length) return false;
+
+  const matrixSize = matrix.length;
+  const cellPx = size / (matrixSize + quietZoneModules * 2);
+
+  ctx.fillStyle = bgColor;
+  ctx.fillRect(x, y, size, size);
+
+  ctx.fillStyle = fgColor;
+  for (let r = 0; r < matrixSize; r++) {
+    for (let c = 0; c < matrixSize; c++) {
+      if (matrix[r][c]) {
+        ctx.fillRect(
+          Math.round(x + (c + quietZoneModules) * cellPx),
+          Math.round(y + (r + quietZoneModules) * cellPx),
+          Math.ceil(cellPx),
+          Math.ceil(cellPx)
+        );
+      }
+    }
+  }
+  return true;
+}
 
 /**
  * Generates a unique OAK pass code matching the Figma design format:
@@ -12,6 +63,11 @@ export function generatePassCode(): string {
     suffix += chars.charAt(Math.floor(Math.random() * chars.length));
   }
   return `OAK-2026-${digits}-${suffix}`;
+}
+
+export function getPassQRUrl(passCode: string): string {
+  const base = process.env.NEXT_PUBLIC_BASE_URL || window.location.origin;
+  return `${base}/success?code=${encodeURIComponent(passCode)}`;
 }
 
 const STORAGE_KEY_CURRENT = "oak_convening_current_attendee";

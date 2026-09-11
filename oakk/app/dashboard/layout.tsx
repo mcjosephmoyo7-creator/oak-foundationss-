@@ -7,10 +7,10 @@ import Sidebar from "../../components/dashboard/Sidebar";
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
     <AuthProvider>
-      <div className="min-h-screen bg-gray-50 flex">
+      <div className="min-h-screen bg-[#F3F6FA]">
         <Sidebar />
-        <main className="flex-1 ml-[116px] min-h-screen">
-          <div className="px-4 py-5 lg:py-6 max-w-[480px] mx-auto">
+        <main className="min-h-screen md:ml-56">
+          <div className="px-4 pt-4 pb-24 md:pt-8 md:pb-8 max-w-120 mx-auto">
             {children}
           </div>
         </main>
